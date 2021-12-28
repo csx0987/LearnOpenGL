@@ -18,13 +18,13 @@ set ( PRJ_INCLUDE_DIRS )
 set ( PRJ_SRC_LIST )
 
 # find_package(glfw3 REQUIRED)
-find_package(OpenGL REQUIRED)
+# find_package(OpenGL REQUIRED)
 
-if (OpenGL_FOUND)
-  message("OpenGL found")
-else()
-  message(FATAL_ERROR "Cannot find OpenGL")
-endif()
+# if (OpenGL_FOUND)
+#   message("OpenGL found")
+# else()
+#   message(FATAL_ERROR "Cannot find OpenGL")
+# endif()
 
 # if (glfw3_FOUND)
 #   message("GLFW found")
@@ -41,20 +41,25 @@ set ( MY_GLFW_LIB "${MY_GLFW}/lib/libglfw.3.3.dylib" )
 
 include_directories("/usr/local/Cellar/glfw/3.3.6/include")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/thridPart/include") 
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/thridPart/imgui") 
 
 
 file ( GLOB glad_header_files "${CMAKE_SOURCE_DIR}/thridPart/include/glad/*.h" )
 file ( GLOB glad_src_files "${CMAKE_SOURCE_DIR}/thridPart/src/glad.c" )
 file ( GLOB khr_header_files "${CMAKE_SOURCE_DIR}/thridPart/include/KHR/*.h" )
+file ( GLOB imgui_header_files "${CMAKE_SOURCE_DIR}/thridPart/imgui/*.h" )
+file ( GLOB imgui_src_files "${CMAKE_SOURCE_DIR}/thridPart/imgui/*.cpp" )
 
 #src
 list ( APPEND PRJ_SRC_LIST ${glad_src_files} )
+list ( APPEND PRJ_SRC_LIST ${imgui_src_files} )
 
 # header
 list ( APPEND PRJ_INCLUDE_DIRS ${glad_header_files} )
 list ( APPEND PRJ_INCLUDE_DIRS ${khr_header_files} )
 # list ( APPEND PRJ_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/core/header/*.h" )
 list ( APPEND PRJ_INCLUDE_DIRS ${MY_GLFW_INC} )
+list ( APPEND PRJ_INCLUDE_DIRS ${imgui_header_files} )
 
 # 动态链接库
 list ( APPEND PRJ_LIBRARIES ${MY_GLFW_LIB} )

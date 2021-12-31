@@ -207,10 +207,20 @@ int main(int, char **)
             ImGui::Text("this is a window controllering gl");
 
             ImGui::SliderFloat3("top right", (float *)&vertices[0], -1.0f, 1.0f);
-            ImGui::SliderFloat3("bottom right", (float *)&vertices[3], -1.0f, 1.0f);
-            ImGui::SliderFloat3("bottom left", (float *)&vertices[6], -1.0f, 1.0f);
-            ImGui::SliderFloat3("top left", (float *)&vertices[9], -1.0f, 1.0f);
-            // ImGui::ColorEdit4("triangle color", (float *)&triangle_color);
+            // ImGui::SameLine();
+            ImGui::ColorEdit3("bottom right color", (float *)&vertices[3]);
+
+            ImGui::SliderFloat3("bottom right", (float *)&vertices[6], -1.0f, 1.0f);
+            // ImGui::SameLine();
+            ImGui::ColorEdit3("top right color", (float *)&vertices[9]);
+
+            ImGui::SliderFloat3("bottom left", (float *)&vertices[12], -1.0f, 1.0f);
+            // ImGui::SameLine();
+            ImGui::ColorEdit3("bottom left color", (float *)&vertices[15]);
+
+            ImGui::SliderFloat3("top left", (float *)&vertices[18], -1.0f, 1.0f);
+            // ImGui::SameLine();
+            ImGui::ColorEdit3("top left color", (float *)&vertices[21]);
 
             ImGui::End();
         }

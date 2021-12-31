@@ -12,6 +12,9 @@
 #include <GLES2/gl2.h>
 #endif
 #include <GLFW/glfw3.h> // Will drag system OpenGL headers
+#include <cmath>
+
+#include "shader.h"
 
 // [Win32] Our example includes a copy of glfw3.lib pre-compiled with VS2010 to maximize ease of testing and compatibility with old VS compilers.
 // To link with VS2010-era libraries, VS2015+ requires linking with legacy_stdio_definitions.lib, which we do using this pragma.
@@ -59,7 +62,7 @@ int main(int, char **)
     glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
 #elif defined(__APPLE__)
     // GL 3.2 + GLSL 150
-    const char *glsl_version = "#version 150";
+    const char *glsl_version = "#version 330";
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // 3.2+ only
@@ -91,8 +94,10 @@ int main(int, char **)
     }
 
     // 编译shader
-    unsigned int shaderProgram;
-    buildLinkAndCompileShader(shaderProgram);
+    // unsigned int shaderProgram;
+    // buildLinkAndCompileShader(shaderProgram);
+
+    Shader shader("../shaders/shader.vs", "../shaders/shader.fs");
 
     // VBO VAO EBO
     float vertices[] = {
@@ -162,6 +167,7 @@ int main(int, char **)
     bool show_demo_window = false;
     bool gl_controller_window = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+    ImVec4 triangle_color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
 
     // Main loop
     while (!glfwWindowShouldClose(window))
@@ -215,6 +221,7 @@ int main(int, char **)
             ImGui::SliderFloat3("bottom right", (float *)&vertices[3], -1.0f, 1.0f);
             ImGui::SliderFloat3("bottom left", (float *)&vertices[6], -1.0f, 1.0f);
             ImGui::SliderFloat3("top left", (float *)&vertices[9], -1.0f, 1.0f);
+            ImGui::ColorEdit4("triangle color", (float *)&triangle_color);
 
             ImGui::End();
         }
@@ -228,7 +235,13 @@ int main(int, char **)
         glClear(GL_COLOR_BUFFER_BIT);
 
         // 渲染代码
-        glUseProgram(shaderProgram);
+        // glUseProgram(shaderProgram);
+        shader.use();
+
+        // 试着用uniform
+        // float timeValue = glfwGetTime();
+        // float greenValue = sin(timeValue) / 2.0f + 0.5f;
+        shader.setVec4("outColor", triangle_color.x, triangle_color.y, triangle_color.z, triangle_color.w);
         glBindVertexArray(VAO);
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
         glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STREAM_DRAW);
@@ -243,7 +256,8 @@ int main(int, char **)
     }
 
     // 清除shader
-    glDeleteProgram(shaderProgram);
+    // glDeleteProgram(shaderProgram);
+    shader.release();
 
     // Cleanup
     ImGui_ImplOpenGL3_Shutdown();

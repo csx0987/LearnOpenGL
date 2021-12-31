@@ -54,11 +54,11 @@ int main(int, char **)
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);           // Required on Mac
 #else
     // GL 3.0 + GLSL 130
-    const char *glsl_version = "#version 130";
+    const char *glsl_version = "#version 330";
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-    // glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
-    // glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // 3.0+ only
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // 3.0+ only
 #endif
 
     // Create window with graphics context
@@ -81,7 +81,7 @@ int main(int, char **)
     // 编译shader
     // unsigned int shaderProgram;
 
-    Shader shader("../shaders/shader.vs", "../shaders/shader.fs");
+    Shader shader("../../../shaders/shader.vs", "../../../shaders/shader.fs");
 
     // VBO VAO EBO
     float vertices[] = {
@@ -154,7 +154,7 @@ int main(int, char **)
 
     // Our state
     bool show_demo_window = false;
-    bool gl_controller_window = false;
+    bool show_gl_controller_window = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
     ImVec4 triangle_color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
 
@@ -175,55 +175,45 @@ int main(int, char **)
 
         // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
         if (show_demo_window)
-            ImGui::ShowDemoWindow(&show_demo_window);
-
-        // 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
         {
-            static float f = 0.0f;
-            static int counter = 0;
-
-            ImGui::Begin("Hello, world!"); // Create a window called "Hello, world!" and append into it.
-
-            ImGui::Text("This is some useful text.");          // Display some text (you can use a format strings too)
-            ImGui::Checkbox("Demo Window", &show_demo_window); // Edit bools storing our window open/close state
-            ImGui::Checkbox("GL Controller Window", &gl_controller_window);
-
-            ImGui::SliderFloat("float", &f, 0.0f, 1.0f);             // Edit 1 float using a slider from 0.0f to 1.0f
-            ImGui::ColorEdit3("clear color", (float *)&clear_color); // Edit 3 floats representing a color
-
-            if (ImGui::Button("Button")) // Buttons return true when clicked (most widgets return true when edited/activated)
-                counter++;
-            ImGui::SameLine();
-            ImGui::Text("counter = %d", counter);
-
-            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-            ImGui::End();
+            ImGui::ShowDemoWindow(&show_demo_window);
         }
 
         // gl渲染属性控制
-        if (gl_controller_window)
+        if (show_gl_controller_window)
         {
-            ImGui::Begin("gl controller", &gl_controller_window);
+            ImGui::Begin("gl controller", &show_gl_controller_window);
             ImGui::Text("this is a window controllering gl");
 
-            ImGui::SliderFloat3("top right", (float *)&vertices[0], -1.0f, 1.0f);
+            ImGui::SliderFloat3("top right", (float*)&vertices[0], -1.0f, 1.0f);
             // ImGui::SameLine();
-            ImGui::ColorEdit3("bottom right color", (float *)&vertices[3]);
+            ImGui::ColorEdit3("bottom right color", (float*)&vertices[3]);
 
-            ImGui::SliderFloat3("bottom right", (float *)&vertices[6], -1.0f, 1.0f);
+            ImGui::SliderFloat3("bottom right", (float*)&vertices[6], -1.0f, 1.0f);
             // ImGui::SameLine();
-            ImGui::ColorEdit3("top right color", (float *)&vertices[9]);
+            ImGui::ColorEdit3("top right color", (float*)&vertices[9]);
 
-            ImGui::SliderFloat3("bottom left", (float *)&vertices[12], -1.0f, 1.0f);
+            ImGui::SliderFloat3("bottom left", (float*)&vertices[12], -1.0f, 1.0f);
             // ImGui::SameLine();
-            ImGui::ColorEdit3("bottom left color", (float *)&vertices[15]);
+            ImGui::ColorEdit3("bottom left color", (float*)&vertices[15]);
 
-            ImGui::SliderFloat3("top left", (float *)&vertices[18], -1.0f, 1.0f);
+            ImGui::SliderFloat3("top left", (float*)&vertices[18], -1.0f, 1.0f);
             // ImGui::SameLine();
-            ImGui::ColorEdit3("top left color", (float *)&vertices[21]);
+            ImGui::ColorEdit3("top left color", (float*)&vertices[21]);
 
             ImGui::End();
         }
+
+        ImGui::Begin("Hello, world!"); // Create a window called "Hello, world!" and append into it.
+
+        ImGui::Text("This is some useful text.");          // Display some text (you can use a format strings too)
+        ImGui::Checkbox("Demo Window", &show_demo_window); // Edit bools storing our window open/close state
+        ImGui::Checkbox("GL Controller Window", &show_gl_controller_window);
+
+        ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
+
+        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+        ImGui::End();
 
         // Rendering
         ImGui::Render();

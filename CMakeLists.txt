@@ -9,7 +9,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 
 
-set(CMAKE_C_COMPILER "gcc")
+# set(CMAKE_C_COMPILER "gcc")
 # set(CMAKE_CXX_COMPILER "clang")
 set(CMAKE_CXX_STANDARD 17)
 
@@ -34,10 +34,16 @@ set ( PRJ_SRC_LIST )
 
 # find_package(OpenGL REQUIRED)
 
-set ( MY_GLFW "/usr/local/Cellar/glfw/3.3.6")
+IF (WIN32)
+    set ( MY_GLFW_LIB "C:/dev/vcpkg/packages/glfw3_x64-windows/lib/glfw3dll.lib" )
+    set ( MY_GLFW_INC "C:/dev/vcpkg/packages/glfw3_x64-windows/include" )
+ELSEIF (APPLE)
+    set ( MY_GLFW "/usr/local/Cellar/glfw/3.3.6")
+    set ( MY_GLFW_INC "${MY_GLFW}/include" )
+    set ( MY_GLFW_LIB "${MY_GLFW}/lib/libglfw.3.3.dylib" )
+ENDIF()
 
-set ( MY_GLFW_INC "${MY_GLFW}/include" )
-set ( MY_GLFW_LIB "${MY_GLFW}/lib/libglfw.3.3.dylib" )
+
 
 include_directories("/usr/local/Cellar/glfw/3.3.6/include")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/thridPart/include") 

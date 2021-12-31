@@ -31,21 +31,6 @@ static void glfw_error_callback(int error, const char *description)
 const unsigned int SCR_WIDTH = 1280;
 const unsigned int SCR_HEIGHT = 720;
 
-const char *vertexShaderSource = "#version 330 core\n"
-                                 "layout (location = 0) in vec3 aPos;\n"
-                                 "void main()\n"
-                                 "{\n"
-                                 "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-                                 "}\0";
-const char *fragmentShaderSource = "#version 330 core\n"
-                                   "out vec4 FragColor;\n"
-                                   "void main()\n"
-                                   "{\n"
-                                   "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
-                                   "}\n\0";
-
-void buildLinkAndCompileShader(unsigned int &shaderProgram);
-
 int main(int, char **)
 {
     // Setup window
@@ -95,16 +80,15 @@ int main(int, char **)
 
     // 编译shader
     // unsigned int shaderProgram;
-    // buildLinkAndCompileShader(shaderProgram);
 
     Shader shader("../shaders/shader.vs", "../shaders/shader.fs");
 
     // VBO VAO EBO
     float vertices[] = {
-        0.5f, 0.5f, 0.0f,   // top right
-        0.5f, -0.5f, 0.0f,  // bottom right
-        -0.5f, -0.5f, 0.0f, // bottom left
-        -0.5f, 0.5f, 0.0f   // top left
+        0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f,   // top right
+        0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,  // bottom right
+        -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, // bottom left
+        -0.5f, 0.5f, 0.0f, 0.5f, 0.5f, 0.5f   // top left
     };
     unsigned int indices[] = {
         // note that we start from 0!
@@ -125,8 +109,13 @@ int main(int, char **)
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
+    // 顶点位置
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)0);
     glEnableVertexAttribArray(0);
+
+    // 顶点颜色
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -221,7 +210,7 @@ int main(int, char **)
             ImGui::SliderFloat3("bottom right", (float *)&vertices[3], -1.0f, 1.0f);
             ImGui::SliderFloat3("bottom left", (float *)&vertices[6], -1.0f, 1.0f);
             ImGui::SliderFloat3("top left", (float *)&vertices[9], -1.0f, 1.0f);
-            ImGui::ColorEdit4("triangle color", (float *)&triangle_color);
+            // ImGui::ColorEdit4("triangle color", (float *)&triangle_color);
 
             ImGui::End();
         }
@@ -235,13 +224,8 @@ int main(int, char **)
         glClear(GL_COLOR_BUFFER_BIT);
 
         // 渲染代码
-        // glUseProgram(shaderProgram);
         shader.use();
-
-        // 试着用uniform
-        // float timeValue = glfwGetTime();
-        // float greenValue = sin(timeValue) / 2.0f + 0.5f;
-        shader.setVec4("outColor", triangle_color.x, triangle_color.y, triangle_color.z, triangle_color.w);
+        // shader.setVec4("outColor", triangle_color.x, triangle_color.y, triangle_color.z, triangle_color.w);
         glBindVertexArray(VAO);
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
         glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STREAM_DRAW);
@@ -268,47 +252,4 @@ int main(int, char **)
     glfwTerminate();
 
     return 0;
-}
-
-void buildLinkAndCompileShader(unsigned int &shaderProgram)
-{
-    int success;
-    char infoLog[512];
-
-    // 编译vertex shader
-    unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-    glCompileShader(vertexShader);
-    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-    if (!success)
-    {
-        glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-        printf("ERROR::SHADER::VERTEX::COMPILATION_FAILED\n%s\n", infoLog);
-    }
-
-    // 编译fragment shader
-    unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-    glCompileShader(fragmentShader);
-    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-    if (!success)
-    {
-        glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-        printf("ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n%s\n", infoLog);
-    }
-
-    // shader链接
-    shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
-    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-    if (!success)
-    {
-        glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-        printf("ERROR::SHADER::PROGRAM::LINKING_FAILED\n%s\n", infoLog);
-    }
-
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
 }

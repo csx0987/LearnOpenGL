@@ -31,6 +31,14 @@ static void glfw_error_callback(int error, const char *description)
 const unsigned int SCR_WIDTH = 1280;
 const unsigned int SCR_HEIGHT = 720;
 
+#if defined(__APPLE__)
+const char *vertexShaderPath = "../shaders/shader.vs";
+const char* fragmentShaderPath = "../shaders/shader.fs";
+#else
+const char* vertexShaderPath = "../../../shaders/shader.vs";
+const char* fragmentShaderPath = "../../../shaders/shader.fs";
+#endif
+
 int main(int, char **)
 {
     // Setup window
@@ -81,7 +89,7 @@ int main(int, char **)
     // 编译shader
     // unsigned int shaderProgram;
 
-    Shader shader("../../../shaders/shader.vs", "../../../shaders/shader.fs");
+    Shader shader(vertexShaderPath, fragmentShaderPath);
 
     // VBO VAO EBO
     float vertices[] = {

@@ -321,6 +321,9 @@ int main(int, char **)
     // glDeleteProgram(shaderProgram);
     shader.release();
 
+    glDeleteTextures(1, &texture1);
+    glDeleteTextures(1, &texture2);
+
     // Cleanup
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();

@@ -18,6 +18,11 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
+// matrix
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 // [Win32] Our example includes a copy of glfw3.lib pre-compiled with VS2010 to maximize ease of testing and compatibility with old VS compilers.
 // To link with VS2010-era libraries, VS2015+ requires linking with legacy_stdio_definitions.lib, which we do using this pragma.
 // Your own project should not be affected, as you are likely to link with a newer binary of GLFW that is adequate for your version of Visual Studio.
@@ -230,6 +235,8 @@ int main(int, char **)
     bool show_gl_controller_window = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
     ImVec4 triangle_color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+    float rot = 0.0f; // 旋转角度
+    ImVec4 scale = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
 
     // Main loop
     while (!glfwWindowShouldClose(window))
@@ -274,6 +281,9 @@ int main(int, char **)
             // ImGui::SameLine();
             ImGui::ColorEdit3("top left color", (float*)&vertices[21]);
 
+            ImGui::SliderFloat("rotation", &rot, -180.0f, 180.0f);
+            ImGui::SliderFloat3("scale", (float*)&scale, -2.0f, 2.0f);
+
             ImGui::End();
         }
 
@@ -301,6 +311,12 @@ int main(int, char **)
         glBindTexture(GL_TEXTURE_2D, texture1);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, texture2);
+
+        // 变换矩阵
+        glm::mat4 trans = glm::mat4(1.0f);
+        trans = glm::rotate(trans, glm::radians(rot), glm::vec3(0.0, 0.0, 1.0));
+        trans = glm::scale(trans, glm::vec3(scale.x, scale.y, scale.z));
+        shader.setMat4("transform", trans);
 
         shader.use();
         // shader.setVec4("outColor", triangle_color.x, triangle_color.y, triangle_color.z, triangle_color.w);

@@ -48,6 +48,7 @@ ENDIF()
 include_directories("/usr/local/Cellar/glfw/3.3.6/include")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/thridPart/include") 
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/thridPart/imgui") 
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/thridPart")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/core/header")
 
 
@@ -58,6 +59,7 @@ file ( GLOB imgui_header_files "${CMAKE_SOURCE_DIR}/thridPart/imgui/*.h" )
 file ( GLOB imgui_src_files "${CMAKE_SOURCE_DIR}/thridPart/imgui/*.cpp" )
 file ( GLOB core_header_files "${CMAKE_SOURCE_DIR}/core/header/*.h" )
 file ( GLOB core_src_files "${CMAKE_SOURCE_DIR}/core/src/*.cpp" )
+file ( GLOB glm_header_files "${CMAKE_SOURCE_DIR}/thridPart/glm/*.hpp" )
 
 #src
 list ( APPEND PRJ_SRC_LIST ${glad_src_files} )
@@ -71,6 +73,7 @@ list ( APPEND PRJ_INCLUDE_DIRS ${khr_header_files} )
 list ( APPEND PRJ_INCLUDE_DIRS ${MY_GLFW_INC} )
 list ( APPEND PRJ_INCLUDE_DIRS ${imgui_header_files} )
 list ( APPEND PRJ_INCLUDE_DIRS ${core_header_files} )
+list ( APPEND PRJ_INCLUDE_DIRS ${glm_header_files} )
 
 # 动态链接库
 list ( APPEND PRJ_LIBRARIES ${MY_GLFW_LIB} )

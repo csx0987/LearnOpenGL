@@ -35,6 +35,11 @@ static void glfw_error_callback(int error, const char *description)
     fprintf(stderr, "Glfw Error %d: %s\n", error, description);
 }
 
+void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+{
+    glViewport(0, 0, width, height);
+}
+
 const unsigned int SCR_WIDTH = 1280;
 const unsigned int SCR_HEIGHT = 720;
 
@@ -89,6 +94,7 @@ int main(int, char **)
         return -1;
     }
     glfwMakeContextCurrent(window);
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSwapInterval(1); // Enable vsync
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -105,16 +111,81 @@ int main(int, char **)
     // VBO VAO EBO
     float vertices[] = {
         //     ---- 位置 ----       ---- 颜色 ----     - 纹理坐标 -
-        0.5f, 0.5f, 0.0f,         1.0f, 0.0f, 0.0f,  1.0f, 1.0f, // top right
-        0.5f, -0.5f, 0.0f,        0.0f, 1.0f, 0.0f,  1.0f, 0.0f, // bottom right
-        -0.5f, -0.5f, 0.0f,       0.0f, 0.0f, 1.0f,  0.0f, 0.0f, // bottom left
-        -0.5f, 0.5f, 0.0f,        0.5f, 0.5f, 0.5f,  0.0f, 1.0f // top left
+            -0.5f, -0.5f, -0.5f,    0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            0.5f, -0.5f, -0.5f,     0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+            0.5f,  0.5f, -0.5f,     0.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+            0.5f,  0.5f, -0.5f,     0.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+            -0.5f,  0.5f, -0.5f,    0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+            -0.5f, -0.5f, -0.5f,    0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+
+            -0.5f, -0.5f,  0.5f,    0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            0.5f, -0.5f,  0.5f,     0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+            0.5f,  0.5f,  0.5f,     0.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+            0.5f,  0.5f,  0.5f,     0.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+            -0.5f,  0.5f,  0.5f,    0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+            -0.5f, -0.5f,  0.5f,    0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+
+
+            -0.5f,  0.5f,  0.5f,    0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+            -0.5f,  0.5f, -0.5f,    0.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+            -0.5f, -0.5f, -0.5f,    0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+            -0.5f, -0.5f, -0.5f,    0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+            -0.5f, -0.5f,  0.5f,    0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            -0.5f,  0.5f,  0.5f,    0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+
+            0.5f,  0.5f,  0.5f,     0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+            0.5f,  0.5f, -0.5f,     0.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+            0.5f, -0.5f, -0.5f,     0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+            0.5f, -0.5f, -0.5f,     0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+            0.5f, -0.5f,  0.5f,     0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            0.5f,  0.5f,  0.5f,     0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+
+            -0.5f, -0.5f, -0.5f,    0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+            0.5f, -0.5f, -0.5f,     0.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+            0.5f, -0.5f,  0.5f,     0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+            0.5f, -0.5f,  0.5f,     0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+            -0.5f, -0.5f,  0.5f,    0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            -0.5f, -0.5f, -0.5f,    0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+
+            -0.5f,  0.5f, -0.5f,    0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+            0.5f,  0.5f, -0.5f,     0.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+            0.5f,  0.5f,  0.5f,     0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+            0.5f,  0.5f,  0.5f,     0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+            -0.5f,  0.5f,  0.5f,    0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            -0.5f,  0.5f, -0.5f,    0.0f, 0.0f, 0.0f, 0.0f, 1.0f
     };
     unsigned int indices[] = {
-        // note that we start from 0!
-        0, 1, 3, // first Triangle
-        1, 2, 3  // second Triangle
+        0, 1, 2,
+        3, 4, 5,
+
+        6, 7, 8,
+        9, 10, 11,
+
+        12, 13, 14,
+        15, 16, 17,
+
+        18, 19, 20,
+        21, 22, 23,
+
+        24, 25, 26,
+        27, 28, 29,
+
+        30, 31, 32,
+        33, 34, 35
     };
+    glm::vec3 cubePositions[] = {
+        glm::vec3( 0.0f,  0.0f,  0.0f), 
+        glm::vec3( 2.0f,  5.0f, -15.0f), 
+        glm::vec3(-1.5f, -2.2f, -2.5f),  
+        glm::vec3(-3.8f, -2.0f, -12.3f),  
+        glm::vec3( 2.4f, -0.4f, -3.5f),  
+        glm::vec3(-1.7f,  3.0f, -7.5f),  
+        glm::vec3( 1.3f, -2.0f, -2.5f),  
+        glm::vec3( 1.5f,  2.0f, -2.5f), 
+        glm::vec3( 1.5f,  0.2f, -1.5f), 
+        glm::vec3(-1.3f,  1.0f, -1.5f)  
+    };
+    
     unsigned int VBO, VAO, EBO;
 
     glGenVertexArrays(1, &VAO);
@@ -235,9 +306,8 @@ int main(int, char **)
     bool show_gl_controller_window = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
     ImVec4 triangle_color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
-    float rot = 0.0f; // 旋转角度
-    ImVec4 scale = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
 
+    glEnable(GL_DEPTH_TEST);
     // Main loop
     while (!glfwWindowShouldClose(window))
     {
@@ -281,9 +351,6 @@ int main(int, char **)
             // ImGui::SameLine();
             ImGui::ColorEdit3("top left color", (float*)&vertices[21]);
 
-            ImGui::SliderFloat("rotation", &rot, -180.0f, 180.0f);
-            ImGui::SliderFloat3("scale", (float*)&scale, -2.0f, 2.0f);
-
             ImGui::End();
         }
 
@@ -300,30 +367,48 @@ int main(int, char **)
 
         // Rendering
         ImGui::Render();
-        int display_w, display_h;
-        glfwGetFramebufferSize(window, &display_w, &display_h);
-        glViewport(0, 0, display_w, display_h);
+        // int display_w, display_h;
+        // glfwGetFramebufferSize(window, &display_w, &display_h);
+        // glViewport(0, 0, display_w, display_h);
         glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
         glClear(GL_COLOR_BUFFER_BIT);
 
         // 渲染代码
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture1);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, texture2);
 
         // 变换矩阵
-        glm::mat4 trans = glm::mat4(1.0f);
-        trans = glm::rotate(trans, glm::radians(rot), glm::vec3(0.0, 0.0, 1.0));
-        trans = glm::scale(trans, glm::vec3(scale.x, scale.y, scale.z));
-        shader.setMat4("transform", trans);
-
+        // glm::mat4 model = glm::mat4(1.0f);
+        glm::mat4 view = glm::mat4(1.0f);
+        glm::mat4 projection = glm::mat4(1.0f);
+        // model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
+        view  = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+        projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+        // shader.setMat4("model", model);
+        shader.setMat4("view", view);
+        shader.setMat4("projection", projection);
         shader.use();
         // shader.setVec4("outColor", triangle_color.x, triangle_color.y, triangle_color.z, triangle_color.w);
         glBindVertexArray(VAO);
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
         glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STREAM_DRAW);
-        glDrawElements(GL_TRIANGLES, 8, GL_UNSIGNED_INT, 0);
+        // glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+
+        for(unsigned int i = 0; i < 10; i++)
+        {
+            glm::mat4 model = glm::mat4(1.0f);
+            model = glm::translate(model, cubePositions[i]);
+            // float angle = 20.0f * i; 
+            float angle = (float)glfwGetTime() * glm::radians(50.0f);
+            model = glm::rotate(model, angle, glm::vec3(1.0f, 0.3f, 0.5f));
+            shader.setMat4("model", model);
+
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
 
         glBindBuffer(GL_ARRAY_BUFFER, 0);
 

@@ -35,13 +35,29 @@ static void glfw_error_callback(int error, const char *description)
     fprintf(stderr, "Glfw Error %d: %s\n", error, description);
 }
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
-{
-    glViewport(0, 0, width, height);
-}
+void framebuffer_size_callback(GLFWwindow *window, int width, int height);
+void processInput(GLFWwindow *window);
+void mouse_callback(GLFWwindow *window, double xpos, double ypos);
+void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 
 const unsigned int SCR_WIDTH = 1280;
 const unsigned int SCR_HEIGHT = 720;
+
+// camera
+glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+
+bool firstMouse = true;
+float yaw = -90.0f;
+float pitch = 0.0f;
+float lastX = 800.0f / 2.0f;
+float lastY = 600.0f / 2.0f;
+float fov = 45.0f;
+
+// timing
+float deltaTime = 0.0f; // time between current frame and last frame
+float lastFrame = 0.0f;
 
 #if defined(__APPLE__)
 const char *vertexShaderPath = "../shaders/shader.vs";
@@ -81,8 +97,8 @@ int main(int, char **)
     const char *glsl_version = "#version 330";
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // 3.0+ only
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // 3.2+ only
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);           // 3.0+ only
 #endif
 
     // Create window with graphics context
@@ -95,6 +111,9 @@ int main(int, char **)
     }
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    // glfwSetCursorPosCallback(window, mouse_callback);
+    // glfwSetScrollCallback(window, scroll_callback);
+    // glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSwapInterval(1); // Enable vsync
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -111,49 +130,47 @@ int main(int, char **)
     // VBO VAO EBO
     float vertices[] = {
         //     ---- 位置 ----       ---- 颜色 ----     - 纹理坐标 -
-            -0.5f, -0.5f, -0.5f,    0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-            0.5f, -0.5f, -0.5f,     0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-            0.5f,  0.5f, -0.5f,     0.0f, 0.0f, 0.0f, 1.0f, 1.0f,
-            0.5f,  0.5f, -0.5f,     0.0f, 0.0f, 0.0f, 1.0f, 1.0f,
-            -0.5f,  0.5f, -0.5f,    0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-            -0.5f, -0.5f, -0.5f,    0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+        0.5f, 0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+        0.5f, 0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+        -0.5f, 0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
 
-            -0.5f, -0.5f,  0.5f,    0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-            0.5f, -0.5f,  0.5f,     0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-            0.5f,  0.5f,  0.5f,     0.0f, 0.0f, 0.0f, 1.0f, 1.0f,
-            0.5f,  0.5f,  0.5f,     0.0f, 0.0f, 0.0f, 1.0f, 1.0f,
-            -0.5f,  0.5f,  0.5f,    0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-            -0.5f, -0.5f,  0.5f,    0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+        0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+        0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+        -0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+        -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
 
+        -0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+        -0.5f, 0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+        -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        -0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
 
-            -0.5f,  0.5f,  0.5f,    0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-            -0.5f,  0.5f, -0.5f,    0.0f, 0.0f, 0.0f, 1.0f, 1.0f,
-            -0.5f, -0.5f, -0.5f,    0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-            -0.5f, -0.5f, -0.5f,    0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-            -0.5f, -0.5f,  0.5f,    0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-            -0.5f,  0.5f,  0.5f,    0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+        0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+        0.5f, 0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+        0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+        0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+        0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
 
-            0.5f,  0.5f,  0.5f,     0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-            0.5f,  0.5f, -0.5f,     0.0f, 0.0f, 0.0f, 1.0f, 1.0f,
-            0.5f, -0.5f, -0.5f,     0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-            0.5f, -0.5f, -0.5f,     0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-            0.5f, -0.5f,  0.5f,     0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-            0.5f,  0.5f,  0.5f,     0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+        0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+        0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+        0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+        -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
 
-            -0.5f, -0.5f, -0.5f,    0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-            0.5f, -0.5f, -0.5f,     0.0f, 0.0f, 0.0f, 1.0f, 1.0f,
-            0.5f, -0.5f,  0.5f,     0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-            0.5f, -0.5f,  0.5f,     0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-            -0.5f, -0.5f,  0.5f,    0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-            -0.5f, -0.5f, -0.5f,    0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-
-            -0.5f,  0.5f, -0.5f,    0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-            0.5f,  0.5f, -0.5f,     0.0f, 0.0f, 0.0f, 1.0f, 1.0f,
-            0.5f,  0.5f,  0.5f,     0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-            0.5f,  0.5f,  0.5f,     0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-            -0.5f,  0.5f,  0.5f,    0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-            -0.5f,  0.5f, -0.5f,    0.0f, 0.0f, 0.0f, 0.0f, 1.0f
-    };
+        -0.5f, 0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+        0.5f, 0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+        0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+        0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+        -0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+        -0.5f, 0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
     unsigned int indices[] = {
         0, 1, 2,
         3, 4, 5,
@@ -171,21 +188,19 @@ int main(int, char **)
         27, 28, 29,
 
         30, 31, 32,
-        33, 34, 35
-    };
+        33, 34, 35};
     glm::vec3 cubePositions[] = {
-        glm::vec3( 0.0f,  0.0f,  0.0f), 
-        glm::vec3( 2.0f,  5.0f, -15.0f), 
-        glm::vec3(-1.5f, -2.2f, -2.5f),  
-        glm::vec3(-3.8f, -2.0f, -12.3f),  
-        glm::vec3( 2.4f, -0.4f, -3.5f),  
-        glm::vec3(-1.7f,  3.0f, -7.5f),  
-        glm::vec3( 1.3f, -2.0f, -2.5f),  
-        glm::vec3( 1.5f,  2.0f, -2.5f), 
-        glm::vec3( 1.5f,  0.2f, -1.5f), 
-        glm::vec3(-1.3f,  1.0f, -1.5f)  
-    };
-    
+        glm::vec3(0.0f, 0.0f, 0.0f),
+        glm::vec3(2.0f, 5.0f, -15.0f),
+        glm::vec3(-1.5f, -2.2f, -2.5f),
+        glm::vec3(-3.8f, -2.0f, -12.3f),
+        glm::vec3(2.4f, -0.4f, -3.5f),
+        glm::vec3(-1.7f, 3.0f, -7.5f),
+        glm::vec3(1.3f, -2.0f, -2.5f),
+        glm::vec3(1.5f, 2.0f, -2.5f),
+        glm::vec3(1.5f, 0.2f, -1.5f),
+        glm::vec3(-1.3f, 1.0f, -1.5f)};
+
     unsigned int VBO, VAO, EBO;
 
     glGenVertexArrays(1, &VAO);
@@ -228,7 +243,7 @@ int main(int, char **)
 
     int width, height, nrChannels;
     stbi_set_flip_vertically_on_load(true);
-    unsigned char* data = stbi_load(imgContainerPath, &width, &height, &nrChannels, 0);
+    unsigned char *data = stbi_load(imgContainerPath, &width, &height, &nrChannels, 0);
 
     if (data)
     {
@@ -268,14 +283,13 @@ int main(int, char **)
     shader.use();
     shader.setInt("texture1", 0);
     shader.setInt("texture2", 1);
-    
 
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO &io = ImGui::GetIO();
     (void)io;
-    // io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+    // io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
     // io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
     // Setup Dear ImGui style
@@ -311,6 +325,11 @@ int main(int, char **)
     // Main loop
     while (!glfwWindowShouldClose(window))
     {
+        float currentFrame = glfwGetTime();
+        deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;
+
+        processInput(window);
         // Poll and handle events (inputs, window resize, etc.)
         // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
         // - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application.
@@ -335,21 +354,21 @@ int main(int, char **)
             ImGui::Begin("gl controller", &show_gl_controller_window);
             ImGui::Text("this is a window controllering gl");
 
-            ImGui::SliderFloat3("top right", (float*)&vertices[0], -1.0f, 1.0f);
+            ImGui::SliderFloat3("top right", (float *)&vertices[0], -1.0f, 1.0f);
             // ImGui::SameLine();
-            ImGui::ColorEdit3("bottom right color", (float*)&vertices[3]);
+            ImGui::ColorEdit3("bottom right color", (float *)&vertices[3]);
 
-            ImGui::SliderFloat3("bottom right", (float*)&vertices[6], -1.0f, 1.0f);
+            ImGui::SliderFloat3("bottom right", (float *)&vertices[6], -1.0f, 1.0f);
             // ImGui::SameLine();
-            ImGui::ColorEdit3("top right color", (float*)&vertices[9]);
+            ImGui::ColorEdit3("top right color", (float *)&vertices[9]);
 
-            ImGui::SliderFloat3("bottom left", (float*)&vertices[12], -1.0f, 1.0f);
+            ImGui::SliderFloat3("bottom left", (float *)&vertices[12], -1.0f, 1.0f);
             // ImGui::SameLine();
-            ImGui::ColorEdit3("bottom left color", (float*)&vertices[15]);
+            ImGui::ColorEdit3("bottom left color", (float *)&vertices[15]);
 
-            ImGui::SliderFloat3("top left", (float*)&vertices[18], -1.0f, 1.0f);
+            ImGui::SliderFloat3("top left", (float *)&vertices[18], -1.0f, 1.0f);
             // ImGui::SameLine();
-            ImGui::ColorEdit3("top left color", (float*)&vertices[21]);
+            ImGui::ColorEdit3("top left color", (float *)&vertices[21]);
 
             ImGui::End();
         }
@@ -360,7 +379,7 @@ int main(int, char **)
         ImGui::Checkbox("Demo Window", &show_demo_window); // Edit bools storing our window open/close state
         ImGui::Checkbox("GL Controller Window", &show_gl_controller_window);
 
-        ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
+        ImGui::ColorEdit3("clear color", (float *)&clear_color); // Edit 3 floats representing a color
 
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
         ImGui::End();
@@ -382,32 +401,28 @@ int main(int, char **)
         glBindTexture(GL_TEXTURE_2D, texture2);
 
         // 变换矩阵
-        // glm::mat4 model = glm::mat4(1.0f);
-        glm::mat4 view = glm::mat4(1.0f);
         glm::mat4 projection = glm::mat4(1.0f);
-        // model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
-        view  = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
-        projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-        // shader.setMat4("model", model);
-        shader.setMat4("view", view);
+        projection = glm::perspective(glm::radians(fov), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         shader.setMat4("projection", projection);
+        glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+        shader.setMat4("view", view);
+
         shader.use();
-        // shader.setVec4("outColor", triangle_color.x, triangle_color.y, triangle_color.z, triangle_color.w);
         glBindVertexArray(VAO);
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
         glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STREAM_DRAW);
         // glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 
-        for(unsigned int i = 0; i < 10; i++)
+        for (unsigned int i = 0; i < 10; i++)
         {
             glm::mat4 model = glm::mat4(1.0f);
             model = glm::translate(model, cubePositions[i]);
-            // float angle = 20.0f * i; 
+            // float angle = 20.0f * i;
             float angle = (float)glfwGetTime() * glm::radians(50.0f);
             model = glm::rotate(model, angle, glm::vec3(1.0f, 0.3f, 0.5f));
             shader.setMat4("model", model);
 
-            glDrawArrays(GL_TRIANGLES, 0, 36);
+            glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
         }
 
         glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -434,4 +449,86 @@ int main(int, char **)
     glfwTerminate();
 
     return 0;
+}
+
+void framebuffer_size_callback(GLFWwindow *window, int width, int height)
+{
+    glViewport(0, 0, width, height);
+}
+
+void processInput(GLFWwindow *window)
+{
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+        glfwSetWindowShouldClose(window, true);
+
+    float cameraSpeed = 2.5 * deltaTime;
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        cameraPos += cameraSpeed * cameraFront;
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        cameraPos -= cameraSpeed * cameraFront;
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+
+    if (glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS)
+    {
+        if (glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED)
+        {
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+            glfwSetCursorPosCallback(window, NULL);
+            glfwSetScrollCallback(window, NULL);
+            firstMouse = true;
+        }
+        else
+        {
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+            glfwSetCursorPosCallback(window, mouse_callback);
+            glfwSetScrollCallback(window, scroll_callback);
+            firstMouse = true;
+        }
+    }
+}
+
+void mouse_callback(GLFWwindow *window, double xpos, double ypos)
+{
+    if (firstMouse)
+    {
+        lastX = xpos;
+        lastY = ypos;
+        firstMouse = false;
+    }
+
+    float xoffset = xpos - lastX;
+    float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
+    lastX = xpos;
+    lastY = ypos;
+
+    float sensitivity = 0.1f; // change this value to your liking
+    xoffset *= sensitivity;
+    yoffset *= sensitivity;
+
+    yaw += xoffset;
+    pitch += yoffset;
+
+    // make sure that when pitch is out of bounds, screen doesn't get flipped
+    if (pitch > 89.0f)
+        pitch = 89.0f;
+    if (pitch < -89.0f)
+        pitch = -89.0f;
+
+    glm::vec3 front;
+    front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+    front.y = sin(glm::radians(pitch));
+    front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+    cameraFront = glm::normalize(front);
+}
+
+void scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
+{
+    fov -= (float)yoffset;
+    if (fov < 1.0f)
+        fov = 1.0f;
+    if (fov > 45.0f)
+        fov = 45.0f;
 }

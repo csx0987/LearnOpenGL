@@ -55,7 +55,15 @@ float deltaTime = 0.0f; // time between current frame and last frame
 float lastFrame = 0.0f;
 
 // lighting
-glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
+struct Light
+{
+    glm::vec3 color;
+    glm::vec3 position;
+
+    glm::vec3 ambient;
+    glm::vec3 diffuse;
+    glm::vec3 specular;
+};
 
 #if defined(__APPLE__)
 const char *cubeVsPath = "../shaders/cube.vs";
@@ -260,6 +268,19 @@ int main(int, char **)
     bool show_demo_window = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
+    bool show_gl_ctr = false;
+    ImVec4 ambientFact = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+    ImVec4 diffuseFact = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+    ImVec4 specularFact = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+    float shininessFact = 1.0f;
+
+    Light light;
+    light.color = glm::vec3(1.0f, 1.0f, 1.0f);
+    light.position = glm::vec3(1.2f, 1.0f, 2.0f);
+    light.ambient = glm::vec3(0.2f, 0.2f, 0.2f);
+    light.diffuse = glm::vec3(0.5f, 0.5f, 0.5f);
+    light.specular = glm::vec3(1.0f, 1.0f, 1.0f);
+
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BACK);
     // Main loop
@@ -292,11 +313,31 @@ int main(int, char **)
 
         ImGui::Text("This is some useful text.");          // Display some text (you can use a format strings too)
         ImGui::Checkbox("Demo Window", &show_demo_window); // Edit bools storing our window open/close state
+        ImGui::Checkbox("gl ctr", &show_gl_ctr);
 
         ImGui::ColorEdit3("clear color", (float *)&clear_color); // Edit 3 floats representing a color
 
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
         ImGui::End();
+
+        if (show_gl_ctr)
+        {
+            ImGui::Begin("gl ctr", &show_gl_ctr);
+            ImGui::Text("Material Attribute");
+            ImGui::ColorEdit3("ambientFact", (float *)&ambientFact);
+            ImGui::ColorEdit3("diffuseFact", (float *)&diffuseFact);
+            ImGui::ColorEdit3("specularFact", (float *)&specularFact);
+            ImGui::SliderFloat("shininessFact", &shininessFact, 0.0f, 128.0f);
+            ImGui::NewLine();
+
+            ImGui::Text("Light Attribute");
+            ImGui::InputFloat3("light pos", (float *)&light.position);
+            ImGui::ColorEdit3("light color", (float *)&light.color);
+            ImGui::ColorEdit3("light ambient", (float *)&light.ambient);
+            ImGui::ColorEdit3("light diffuse", (float *)&light.diffuse);
+            ImGui::ColorEdit3("light specular", (float *)&light.specular);
+            ImGui::End();
+        }
 
         // Rendering
         ImGui::Render();
@@ -311,8 +352,8 @@ int main(int, char **)
 
         cubeShader.use();
         cubeShader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
-        cubeShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
-        cubeShader.setVec3("lightPos", lightPos);
+        cubeShader.setVec3("lightColor", light.color);
+        cubeShader.setVec3("light.position", light.position);
 
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
@@ -325,6 +366,17 @@ int main(int, char **)
         cubeShader.setMat4("invModel", invModel);
         cubeShader.setVec3("viewPos", camera.Position);
 
+        // material
+        cubeShader.setVec3("material.ambient", ambientFact.x, ambientFact.y, ambientFact.z);
+        cubeShader.setVec3("material.diffuse", diffuseFact.x, diffuseFact.y, diffuseFact.z);
+        cubeShader.setVec3("material.specular", specularFact.x, specularFact.y, specularFact.z);
+        cubeShader.setFloat("material.shininess", shininessFact);
+
+        // light
+        cubeShader.setVec3("light.ambient", light.ambient);
+        cubeShader.setVec3("light.diffuse", light.diffuse);
+        cubeShader.setVec3("light.specular", light.specular);
+
         glBindVertexArray(cubeVAO);
 
         glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
@@ -333,7 +385,7 @@ int main(int, char **)
         lightCubeShader.setMat4("projection", projection);
         lightCubeShader.setMat4("view", view);
         model = glm::mat4(1.0f);
-        model = glm::translate(model, lightPos);
+        model = glm::translate(model, light.position);
         model = glm::scale(model, glm::vec3(0.2f)); // a smaller cube
         lightCubeShader.setMat4("model", model);
 

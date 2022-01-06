@@ -69,6 +69,8 @@ struct Light
     float constant;
     float linear;
     float quadratic;
+    float cutOff;
+    float outerCutOff;
 };
 
 // box
@@ -318,6 +320,8 @@ int main(int, char **)
     light.constant = 1.0f;
     light.linear = 0.09f;
     light.quadratic = 0.032f;
+    light.cutOff = glm::cos(glm::radians(12.5f));
+    light.outerCutOff = glm::cos(glm::radians(17.5f));
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BACK);
@@ -423,6 +427,9 @@ int main(int, char **)
         cubeShader.setInt("material.emissive", 2);
         cubeShader.setFloat("material.shininess", shininessFact);
 
+        light.position = camera.Position;
+        light.direction = camera.Front;
+
         // light
         cubeShader.setVec3("light.ambient", light.ambient);
         cubeShader.setVec3("light.diffuse", light.diffuse);
@@ -430,6 +437,10 @@ int main(int, char **)
         cubeShader.setFloat("light.constant", light.constant);
         cubeShader.setFloat("light.linear", light.linear);
         cubeShader.setFloat("light.quadratic", light.quadratic);
+        cubeShader.setVec3("light.position", light.position);
+        cubeShader.setVec3("light.direction", light.direction);
+        cubeShader.setFloat("light.cutOff", light.cutOff);
+        cubeShader.setFloat("light.outerCutOff", light.outerCutOff);
 
         // texutre
         glActiveTexture(GL_TEXTURE0);
@@ -459,16 +470,16 @@ int main(int, char **)
 
         // glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 
-        lightCubeShader.use();
-        lightCubeShader.setMat4("projection", projection);
-        lightCubeShader.setMat4("view", view);
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, light.position);
-        model = glm::scale(model, glm::vec3(0.2f)); // a smaller cube
-        lightCubeShader.setMat4("model", model);
+        // lightCubeShader.use();
+        // lightCubeShader.setMat4("projection", projection);
+        // lightCubeShader.setMat4("view", view);
+        // glm::mat4 model = glm::mat4(1.0f);
+        // model = glm::translate(model, light.position);
+        // model = glm::scale(model, glm::vec3(0.2f)); // a smaller cube
+        // lightCubeShader.setMat4("model", model);
 
-        glBindVertexArray(lightCubeVAO);
-        glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+        // glBindVertexArray(lightCubeVAO);
+        // glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 
         glBindBuffer(GL_ARRAY_BUFFER, 0);
 

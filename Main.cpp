@@ -73,6 +73,40 @@ struct Light
     float outerCutOff;
 };
 
+struct BaseLight
+{
+    glm::vec3 ambient;
+    glm::vec3 diffuse;
+    glm::vec3 specular;
+};
+
+struct DirLight : BaseLight // 平行光，暂只有一个
+{
+    glm::vec3 direction;
+};
+
+struct PointLight : BaseLight
+{
+    glm::vec3 position;
+
+    float constant;
+    float linear;
+    float quadratic;
+};
+
+struct SpotLight : BaseLight
+{
+    glm::vec3 position;
+    glm::vec3 direction;
+
+    float cutOff;
+    float outerCutOff;
+
+    float constant;
+    float linear;
+    float quadratic;
+};
+
 // box
 glm::vec3 cubePositions[] = {
     glm::vec3(0.0f, 0.0f, 0.0f),
@@ -85,6 +119,39 @@ glm::vec3 cubePositions[] = {
     glm::vec3(1.5f, 2.0f, -2.5f),
     glm::vec3(1.5f, 0.2f, -1.5f),
     glm::vec3(-1.3f, 1.0f, -1.5f)};
+
+glm::vec3 pointLightPosition[] = {
+    glm::vec3(0.7f, 0.2f, 2.0f),
+    glm::vec3(2.3f, -3.3f, -4.0f),
+    glm::vec3(-4.0f, 2.0f, -12.0f),
+    glm::vec3(0.0f, 0.0f, -3.0f)};
+
+glm::vec3 pointLightAmbient[] = {
+    glm::vec3(0.05f, 0.05f, 0.05f),
+    glm::vec3(0.05f, 0.05f, 0.05f),
+    glm::vec3(0.05f, 0.05f, 0.05f),
+};
+
+glm::vec3 pointLightDiffuse[] = {
+    glm::vec3(0.8f, 0.8f, 0.8f),
+    glm::vec3(0.8f, 0.8f, 0.8f),
+    glm::vec3(0.8f, 0.8f, 0.8f),
+};
+
+glm::vec3 pointLightSpecular[] = {
+    glm::vec3(1.0f, 1.0f, 1.0f),
+    glm::vec3(1.0f, 1.0f, 1.0f),
+    glm::vec3(1.0f, 1.0f, 1.0f),
+};
+
+float pointLightConstant[] = {
+    1.0f, 1.0f, 1.0f};
+
+float pointLightLinear[] = {
+    0.09f, 0.09f, 0.09f};
+
+float pointLightQuadratic[] = {
+    0.032f, 0.032f, 0.032f};
 
 #if defined(__APPLE__)
 const char *cubeVsPath = "../shaders/cube.vs";
@@ -323,6 +390,36 @@ int main(int, char **)
     light.cutOff = glm::cos(glm::radians(12.5f));
     light.outerCutOff = glm::cos(glm::radians(17.5f));
 
+    DirLight dirLight;
+    dirLight.direction = glm::vec3(-0.2f, -1.0f, -0.3f);
+    dirLight.ambient = glm::vec3(0.05f, 0.05f, 0.05f);
+    dirLight.diffuse = glm::vec3(0.4f, 0.4f, 0.4f);
+    dirLight.specular = glm::vec3(0.5f, 0.5f, 0.5f);
+
+    PointLight pointLights[3];
+    for (unsigned int i = 0; i < 3; i++)
+    {
+        pointLights[i].position = pointLightPosition[i];
+        pointLights[i].ambient = pointLightAmbient[i];
+        pointLights[i].diffuse = pointLightDiffuse[i];
+        pointLights[i].specular = pointLightSpecular[i];
+        pointLights[i].constant = pointLightConstant[i];
+        pointLights[i].linear = pointLightLinear[i];
+        pointLights[i].quadratic = pointLightQuadratic[i];
+    }
+
+    SpotLight spotLight;
+    spotLight.position = camera.Position;
+    spotLight.direction = camera.Front;
+    spotLight.ambient = glm::vec3(0.0f, 0.0f, 0.0f);
+    spotLight.diffuse = glm::vec3(1.0f, 1.0f, 1.0f);
+    spotLight.specular = glm::vec3(1.0f, 1.0f, 1.0f);
+    spotLight.constant = 1.0f;
+    spotLight.linear = 0.09f;
+    spotLight.quadratic = 0.032f;
+    spotLight.cutOff = glm::cos(glm::radians(12.5f));
+    spotLight.outerCutOff = glm::cos(glm::radians(15.0f));
+
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BACK);
     // Main loop
@@ -377,15 +474,15 @@ int main(int, char **)
             // ImGui::Text("Light Attribute");
             if (ImGui::TreeNode("Light Attribute"))
             {
-                ImGui::InputFloat3("light pos", (float *)&light.position);
-                ImGui::InputFloat3("light direction", (float *)&light.direction);
-                ImGui::ColorEdit3("light color", (float *)&light.color);
-                ImGui::ColorEdit3("light ambient", (float *)&light.ambient);
-                ImGui::ColorEdit3("light diffuse", (float *)&light.diffuse);
-                ImGui::ColorEdit3("light specular", (float *)&light.specular);
-                ImGui::InputFloat("light constant", &light.constant);
-                ImGui::InputFloat("light linear", &light.linear);
-                ImGui::InputFloat("light quadratic", &light.quadratic);
+                // ImGui::InputFloat3("light pos", (float *)&light.position);
+                // ImGui::InputFloat3("light direction", (float *)&light.direction);
+                // ImGui::ColorEdit3("light color", (float *)&light.color);
+                // ImGui::ColorEdit3("light ambient", (float *)&light.ambient);
+                // ImGui::ColorEdit3("light diffuse", (float *)&light.diffuse);
+                // ImGui::ColorEdit3("light specular", (float *)&light.specular);
+                // ImGui::InputFloat("light constant", &light.constant);
+                // ImGui::InputFloat("light linear", &light.linear);
+                // ImGui::InputFloat("light quadratic", &light.quadratic);
                 ImGui::TreePop();
             }
 
@@ -404,8 +501,8 @@ int main(int, char **)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         cubeShader.use();
-        cubeShader.setVec3("lightColor", light.color);
-        cubeShader.setVec3("light.position", light.position);
+        // cubeShader.setVec3("lightColor", light.color);
+        // cubeShader.setVec3("light.position", light.position);
         // cubeShader.setVec3("light.direction", light.direction);
 
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
@@ -427,22 +524,73 @@ int main(int, char **)
         cubeShader.setInt("material.emissive", 2);
         cubeShader.setFloat("material.shininess", shininessFact);
 
-        light.position = camera.Position;
-        light.direction = camera.Front;
+        // light.position = camera.Position;
+        // light.direction = camera.Front;
+        spotLight.position = camera.Position;
+        spotLight.direction = camera.Front;
 
         // light
-        cubeShader.setVec3("light.ambient", light.ambient);
-        cubeShader.setVec3("light.diffuse", light.diffuse);
-        cubeShader.setVec3("light.specular", light.specular);
-        cubeShader.setFloat("light.constant", light.constant);
-        cubeShader.setFloat("light.linear", light.linear);
-        cubeShader.setFloat("light.quadratic", light.quadratic);
-        cubeShader.setVec3("light.position", light.position);
-        cubeShader.setVec3("light.direction", light.direction);
-        cubeShader.setFloat("light.cutOff", light.cutOff);
-        cubeShader.setFloat("light.outerCutOff", light.outerCutOff);
+        // cubeShader.setVec3("light.ambient", light.ambient);
+        // cubeShader.setVec3("light.diffuse", light.diffuse);
+        // cubeShader.setVec3("light.specular", light.specular);
+        // cubeShader.setFloat("light.constant", light.constant);
+        // cubeShader.setFloat("light.linear", light.linear);
+        // cubeShader.setFloat("light.quadratic", light.quadratic);
+        // cubeShader.setVec3("light.position", light.position);
+        // cubeShader.setVec3("light.direction", light.direction);
+        // cubeShader.setFloat("light.cutOff", light.cutOff);
+        // cubeShader.setFloat("light.outerCutOff", light.outerCutOff);
 
-        // texutre
+        // light
+        // Direction Light
+        cubeShader.setVec3("dirLight.direction", dirLight.direction);
+        cubeShader.setVec3("dirLight.ambient", dirLight.ambient);
+        cubeShader.setVec3("dirLight.diffuse", dirLight.diffuse);
+        cubeShader.setVec3("dirLight.specular", dirLight.specular);
+
+        // Point Light
+        const char *attr1 = "position";
+        const char *attr2 = "ambient";
+        const char *attr3 = "diffuse";
+        const char *attr4 = "specular";
+        const char *attr5 = "constant";
+        const char *attr6 = "linear";
+        const char *attr7 = "quadratic";
+        char prefix[100]; // temp;
+        for (unsigned int i = 0; i < 3; i++)
+        {
+            sprintf(prefix, "%s%d%s", "pointLights[", i, "].");
+            char temp[100];
+
+            sprintf(temp, "%s%s", prefix, attr1);
+            cubeShader.setVec3(temp, pointLights[i].position);
+            sprintf(temp, "%s%s", prefix, attr2);
+            cubeShader.setVec3(temp, pointLights[i].ambient);
+            sprintf(temp, "%s%s", prefix, attr3);
+            cubeShader.setVec3(temp, pointLights[i].diffuse);
+            sprintf(temp, "%s%s", prefix, attr4);
+            cubeShader.setVec3(temp, pointLights[i].specular);
+            sprintf(temp, "%s%s", prefix, attr5);
+            cubeShader.setFloat(temp, pointLights[i].constant);
+            sprintf(temp, "%s%s", prefix, attr6);
+            cubeShader.setFloat(temp, pointLights[i].linear);
+            sprintf(temp, "%s%s", prefix, attr7);
+            cubeShader.setFloat(temp, pointLights[i].quadratic);
+        }
+
+        // Spot Light
+        cubeShader.setVec3("spotLight.position", spotLight.position);
+        cubeShader.setVec3("spotLight.direction", spotLight.direction);
+        cubeShader.setVec3("spotLight.ambient", spotLight.ambient);
+        cubeShader.setVec3("spotLight.diffuse", spotLight.diffuse);
+        cubeShader.setVec3("spotLight.specular", spotLight.specular);
+        cubeShader.setFloat("spotLight.constant", spotLight.constant);
+        cubeShader.setFloat("spotLight.linear", spotLight.linear);
+        cubeShader.setFloat("spotLight.quadratic", spotLight.quadratic);
+        cubeShader.setFloat("spotLight.cutOff", spotLight.cutOff);
+        cubeShader.setFloat("spotLight.outerCutOff", spotLight.outerCutOff);
+
+        // texture
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, diffuseMap);
 
@@ -470,9 +618,19 @@ int main(int, char **)
 
         // glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 
-        // lightCubeShader.use();
-        // lightCubeShader.setMat4("projection", projection);
-        // lightCubeShader.setMat4("view", view);
+        lightCubeShader.use();
+        lightCubeShader.setMat4("projection", projection);
+        lightCubeShader.setMat4("view", view);
+
+        glBindVertexArray(lightCubeVAO);
+        for (unsigned int i = 0; i < 3; i++)
+        {
+            glm::mat4 model = glm::mat4(1.0f);
+            model = glm::translate(model, pointLights[i].position);
+            model = glm::scale(model, glm::vec3(0.2f));
+            lightCubeShader.setMat4("model", model);
+            glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+        }
         // glm::mat4 model = glm::mat4(1.0f);
         // model = glm::translate(model, light.position);
         // model = glm::scale(model, glm::vec3(0.2f)); // a smaller cube

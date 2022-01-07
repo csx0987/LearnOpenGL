@@ -35,17 +35,25 @@ set ( PRJ_SRC_LIST )
 # find_package(OpenGL REQUIRED)
 
 IF (WIN32)
-    set ( MY_GLFW_LIB "C:/dev/vcpkg/packages/glfw3_x64-windows/lib/glfw3dll.lib" )
-    set ( MY_GLFW_INC "C:/dev/vcpkg/packages/glfw3_x64-windows/include" )
+    set ( MY_GLFW "C:/dev/vcpkg/packages/glfw3_x64-windows" )
+    set ( MY_GLFW_LIB "${MY_GLFW}/lib/glfw3dll.lib" )
+    set ( MY_GLFW_INC "${MY_GLFW}/include" )
+    set ( MY_ASSIMP "C:/dev/vcpkg/packages/assimp_x64-windows" )
+    set ( MY_ASSIMP_INC "${MY_ASSIMP}/include" )
+    set ( MY_ASSIMP_LIB "${MY_ASSIMP}/lib/assimpdll.lib" )
 ELSEIF (APPLE)
     set ( MY_GLFW "/usr/local/Cellar/glfw/3.3.6")
     set ( MY_GLFW_INC "${MY_GLFW}/include" )
     set ( MY_GLFW_LIB "${MY_GLFW}/lib/libglfw.3.3.dylib" )
+    set ( MY_ASSIMP "/usr/local/Cellar/assimp/5.1.5" )
+    set ( MY_ASSIMP_INC "${MY_ASSIMP}/include" )
+    set ( MY_ASSIMP_LIB "${MY_ASSIMP}/lib/libassimp.5.1.4.dylib" )
+    include_directories("/usr/local/Cellar/glfw/3.3.6/include")
+    include_directories("/usr/local/Cellar/assimp/5.1.5/include")
 ENDIF()
 
 
 
-include_directories("/usr/local/Cellar/glfw/3.3.6/include")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/thridPart/include") 
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/thridPart/imgui") 
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/thridPart")
@@ -71,12 +79,14 @@ list ( APPEND PRJ_INCLUDE_DIRS ${glad_header_files} )
 list ( APPEND PRJ_INCLUDE_DIRS ${khr_header_files} )
 # list ( APPEND PRJ_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/core/header/*.h" )
 list ( APPEND PRJ_INCLUDE_DIRS ${MY_GLFW_INC} )
+list ( APPEND PRJ_INCLUDE_DIRS ${MY_ASSIMP_INC} )
 list ( APPEND PRJ_INCLUDE_DIRS ${imgui_header_files} )
 list ( APPEND PRJ_INCLUDE_DIRS ${core_header_files} )
 list ( APPEND PRJ_INCLUDE_DIRS ${glm_header_files} )
 
 # 动态链接库
 list ( APPEND PRJ_LIBRARIES ${MY_GLFW_LIB} )
+list ( APPEND PRJ_LIBRARIES ${MY_ASSIMP_LIB} )
 # set(SOURCE 
 #   core/src/Game.cpp
 # )

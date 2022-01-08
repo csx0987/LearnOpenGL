@@ -6,7 +6,7 @@ project(LearnOpenGL
 )
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
+#set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 
 
 # set(CMAKE_C_COMPILER "gcc")
@@ -35,12 +35,15 @@ set ( PRJ_SRC_LIST )
 # find_package(OpenGL REQUIRED)
 
 IF (WIN32)
+    include(C:/dev/vcpkg/scripts/buildsystems/vcpkg.cmake)
     set ( MY_GLFW "C:/dev/vcpkg/packages/glfw3_x64-windows" )
     set ( MY_GLFW_LIB "${MY_GLFW}/lib/glfw3dll.lib" )
     set ( MY_GLFW_INC "${MY_GLFW}/include" )
     set ( MY_ASSIMP "C:/dev/vcpkg/packages/assimp_x64-windows" )
     set ( MY_ASSIMP_INC "${MY_ASSIMP}/include" )
-    set ( MY_ASSIMP_LIB "${MY_ASSIMP}/lib/assimpdll.lib" )
+    # set ( MY_ASSIMP_LIB "${MY_ASSIMP}/lib/assimp-vc142-mt.lib" )
+    find_package(assimp CONFIG REQUIRED)
+    set ( MY_ASSIMP_LIB assimp::assimp )
 ELSEIF (APPLE)
     set ( MY_GLFW "/usr/local/Cellar/glfw/3.3.6")
     set ( MY_GLFW_INC "${MY_GLFW}/include" )

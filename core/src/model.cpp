@@ -1,12 +1,13 @@
 #include "model.h"
 
-Model::Model(std::string const &path, bool gamma = false)
+Model::Model(std::string const &path, bool gamma)
     : gammaCorrection(gamma)
 {
     loadModel(path);
 }
 
 void Model::Draw(Shader &shader)
+
 {
     for (unsigned int i = 0; i < meshes.size(); i++)
         meshes[i].Draw(shader);
@@ -33,6 +34,11 @@ void Model::processNode(aiNode *node, const aiScene *scene)
     {
         aiMesh *mesh = scene->mMeshes[node->mMeshes[i]];
         meshes.push_back(processMesh(mesh, scene));
+    }
+
+    for(unsigned int i = 0; i < node->mNumChildren; i++)
+    {
+        processNode(node->mChildren[i], scene);
     }
 }
 

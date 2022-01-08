@@ -16,6 +16,7 @@
 
 #include "shader.h"
 #include "camera.h"
+#include "model.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
@@ -158,19 +159,25 @@ const char *cubeVsPath = "../shaders/cube.vs";
 const char *cubeFsPath = "../shaders/cube.fs";
 const char *lightCubeVsPath = "../shaders/light_cube.vs";
 const char *lightCubeFsPath = "../shaders/light_cube.fs";
+const char *modelVsPath = "../shaders/model.vs";
+const char *modelFsPath = "../shaders/model.fs";
 const char *diffuseMapPath = "../resources/textures/container2.png";
 const char *specularMapPath = "../resources/textures/container2_specular.png";
 const char *emissiveMapPath = "../resources/textures/matrix.jpeg";
+const char *objPath = "../resources/models/nanosuit/nanosuit.obj";
 // const char *imgContainerPath = "../resources/textures/container.jpg";
 // const char *imgAwesomefacePath = "../resources/textures/awesomeface.png";
 #else
-const char *cubeVsPath = "../../../shaders/cube.vs";
-const char *cubeFsPath = "../../../shaders/cube.fs";
-const char *lightCubeVsPath = "../../../shaders/light_cube.vs";
-const char *lightCubeFsPath = "../../../shaders/light_cube.fs";
-const char *diffuseMapPath = "../../../resources/textures/container2.png";
-const char *specularMapPath = "../../../resources/textures/container2_specular.png";
-const char *emissiveMapPath = "../../../resources/textures/matrix.jpeg";
+const char *cubeVsPath = "../../shaders/cube.vs";
+const char *cubeFsPath = "../../shaders/cube.fs";
+const char *lightCubeVsPath = "../../shaders/light_cube.vs";
+const char *lightCubeFsPath = "../../shaders/light_cube.fs";
+const char *modelVsPath = "../../shaders/model.vs";
+const char *modelFsPath = "../../shaders/model.fs";
+const char *diffuseMapPath = "../../resources/textures/container2.png";
+const char *specularMapPath = "../../resources/textures/container2_specular.png";
+const char *emissiveMapPath = "../../resources/textures/matrix.jpeg";
+const char *objPath = "../../resources/models/nanosuit/nanosuit.obj";
 // const char *imgContainerPath = "../../../resources/textures/container.jpg";
 // const char *imgAwesomefacePath = "../../../resources/textures/awesomeface.png";
 #endif
@@ -230,6 +237,7 @@ int main(int, char **)
     // unsigned int shaderProgram;
     Shader cubeShader(cubeVsPath, cubeFsPath);
     Shader lightCubeShader(lightCubeVsPath, lightCubeFsPath);
+    Shader modelShader(modelVsPath, modelFsPath);
 
     // VBO VAO EBO
     float vertices[] = {
@@ -336,6 +344,9 @@ int main(int, char **)
     unsigned int diffuseMap = loadTexture(diffuseMapPath);
     unsigned int specularMap = loadTexture(specularMapPath);
     unsigned int emissiveMap = loadTexture(emissiveMapPath);
+
+    // 载入模型
+    Model ourModel(objPath);
 
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
@@ -638,6 +649,16 @@ int main(int, char **)
 
         // glBindVertexArray(lightCubeVAO);
         // glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+
+        // 渲染模型
+        modelShader.use();
+        modelShader.setMat4("projection", projection);
+        modelShader.setMat4("view", view);
+        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f)); // translate it down so it's at the center of the scene
+        model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	// it's a bit too big for our scene, so scale it down
+        modelShader.setMat4("model", model);
+        ourModel.Draw(modelShader);
 
         glBindBuffer(GL_ARRAY_BUFFER, 0);
 

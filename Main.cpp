@@ -222,9 +222,6 @@ int main(int, char **)
     }
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-    // glfwSetCursorPosCallback(window, mouse_callback);
-    // glfwSetScrollCallback(window, scroll_callback);
-    // glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSwapInterval(1); // Enable vsync
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -383,7 +380,6 @@ int main(int, char **)
     bool show_demo_window = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
-    bool show_gl_ctr = false;
     // ImVec4 diffuseFact = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
     ImVec4 specularFact = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
     float shininessFact = 36.0f;
@@ -463,48 +459,14 @@ int main(int, char **)
 
         ImGui::Text("This is some useful text.");          // Display some text (you can use a format strings too)
         ImGui::Checkbox("Demo Window", &show_demo_window); // Edit bools storing our window open/close state
-        ImGui::Checkbox("gl ctr", &show_gl_ctr);
 
         ImGui::ColorEdit3("clear color", (float *)&clear_color); // Edit 3 floats representing a color
 
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
         ImGui::End();
 
-        if (show_gl_ctr)
-        {
-            ImGui::Begin("gl ctr", &show_gl_ctr);
-            // ImGui::Text("Material Attribute");
-            if (ImGui::TreeNode("Material Attribute"))
-            {
-                // ImGui::ColorEdit3("diffuseFact", (float *)&diffuseFact);
-                // ImGui::ColorEdit3("specularFact", (float *)&specularFact);
-                ImGui::SliderFloat("shininessFact", &shininessFact, 0.0f, 128.0f);
-                ImGui::TreePop();
-            }
-
-            // ImGui::Text("Light Attribute");
-            if (ImGui::TreeNode("Light Attribute"))
-            {
-                // ImGui::InputFloat3("light pos", (float *)&light.position);
-                // ImGui::InputFloat3("light direction", (float *)&light.direction);
-                // ImGui::ColorEdit3("light color", (float *)&light.color);
-                // ImGui::ColorEdit3("light ambient", (float *)&light.ambient);
-                // ImGui::ColorEdit3("light diffuse", (float *)&light.diffuse);
-                // ImGui::ColorEdit3("light specular", (float *)&light.specular);
-                // ImGui::InputFloat("light constant", &light.constant);
-                // ImGui::InputFloat("light linear", &light.linear);
-                // ImGui::InputFloat("light quadratic", &light.quadratic);
-                ImGui::TreePop();
-            }
-
-            ImGui::End();
-        }
-
         // Rendering
         ImGui::Render();
-        // int display_w, display_h;
-        // glfwGetFramebufferSize(window, &display_w, &display_h);
-        // glViewport(0, 0, display_w, display_h);
         glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
         glClear(GL_COLOR_BUFFER_BIT);
 
@@ -512,19 +474,12 @@ int main(int, char **)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         cubeShader.use();
-        // cubeShader.setVec3("lightColor", light.color);
-        // cubeShader.setVec3("light.position", light.position);
-        // cubeShader.setVec3("light.direction", light.direction);
 
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
         cubeShader.setMat4("projection", projection);
         cubeShader.setMat4("view", view);
 
-        // glm::mat4 model = glm::mat4(1.0f);
-        // cubeShader.setMat4("model", model);
-        // glm::mat4 invModel = glm::inverse(model);
-        // cubeShader.setMat4("invModel", invModel);
         cubeShader.setVec3("viewPos", camera.Position);
 
         // material
@@ -539,18 +494,6 @@ int main(int, char **)
         // light.direction = camera.Front;
         spotLight.position = camera.Position;
         spotLight.direction = camera.Front;
-
-        // light
-        // cubeShader.setVec3("light.ambient", light.ambient);
-        // cubeShader.setVec3("light.diffuse", light.diffuse);
-        // cubeShader.setVec3("light.specular", light.specular);
-        // cubeShader.setFloat("light.constant", light.constant);
-        // cubeShader.setFloat("light.linear", light.linear);
-        // cubeShader.setFloat("light.quadratic", light.quadratic);
-        // cubeShader.setVec3("light.position", light.position);
-        // cubeShader.setVec3("light.direction", light.direction);
-        // cubeShader.setFloat("light.cutOff", light.cutOff);
-        // cubeShader.setFloat("light.outerCutOff", light.outerCutOff);
 
         // light
         // Direction Light
@@ -642,13 +585,6 @@ int main(int, char **)
             lightCubeShader.setMat4("model", model);
             glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
         }
-        // glm::mat4 model = glm::mat4(1.0f);
-        // model = glm::translate(model, light.position);
-        // model = glm::scale(model, glm::vec3(0.2f)); // a smaller cube
-        // lightCubeShader.setMat4("model", model);
-
-        // glBindVertexArray(lightCubeVAO);
-        // glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 
         // 渲染模型
         modelShader.use();
@@ -656,7 +592,7 @@ int main(int, char **)
         modelShader.setMat4("view", view);
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f)); // translate it down so it's at the center of the scene
-        model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	// it's a bit too big for our scene, so scale it down
+        model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));     // it's a bit too big for our scene, so scale it down
         modelShader.setMat4("model", model);
         ourModel.Draw(modelShader);
 

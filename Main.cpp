@@ -17,6 +17,10 @@
 #include "shader.h"
 #include "camera.h"
 #include "model.h"
+#include "vertexBuffer.h"
+#include "indexBuffer.h"
+#include "vertexArray.h"
+#include "vertexBufferLayout.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
@@ -222,7 +226,7 @@ int main(int, char **)
     }
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-    glfwSwapInterval(1); // Enable vsync
+    glfwSwapInterval(1); // Enable vsync 垂直同步
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
@@ -299,41 +303,27 @@ int main(int, char **)
         30, 31, 32,
         33, 34, 35};
 
-    unsigned int VBO, lightCubeVAO, EBO, cubeVAO;
+    VertexArray cubeVertexArray;
+    VertexBufferLayout cubeVertexBufferLayout;
 
-    glGenVertexArrays(1, &cubeVAO);
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
+    cubeVertexBufferLayout.Push(GL_FLOAT, 3, false); // 顶点位置
+    cubeVertexBufferLayout.Push(GL_FLOAT, 3, true);  // 法线
+    cubeVertexBufferLayout.Push(GL_FLOAT, 2, false); // uv
 
-    // cube
-    glBindVertexArray(cubeVAO);
+    VertexBuffer cubeVertexBuffer(vertices, sizeof(vertices));
+    IndexBuffer cubeIndexBuffer(indices, sizeof(indices) / sizeof(unsigned int));
 
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    cubeVertexArray.AddBuffer(cubeVertexBuffer, cubeVertexBufferLayout);
+    cubeIndexBuffer.Bind();
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    VertexArray lightVertexArray;
+    VertexBufferLayout lightVertexBufferLayout;
+    lightVertexBufferLayout.Push(GL_FLOAT, 3, false); // 顶点位置
+    lightVertexBufferLayout.Push(GL_FLOAT, 3, false);
+    lightVertexBufferLayout.Push(GL_FLOAT, 2, false);
 
-    // 顶点位置
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)0);
-    glEnableVertexAttribArray(0);
-
-    // 法线
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_TRUE, 8 * sizeof(float), (void *)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-
-    // uv
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(6 * sizeof(float)));
-    glEnableVertexAttribArray(2);
-
-    // lightCube
-    glGenVertexArrays(1, &lightCubeVAO);
-    glBindVertexArray(lightCubeVAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)0);
-    glEnableVertexAttribArray(0);
+    lightVertexArray.AddBuffer(cubeVertexBuffer, cubeVertexBufferLayout);
+    cubeIndexBuffer.Bind();
 
     glBindVertexArray(0);
 
@@ -429,6 +419,17 @@ int main(int, char **)
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BACK);
+
+    // OpenGL 基本信息
+    const GLubyte *vendorName = glGetString(GL_VENDOR);
+    const GLubyte *glVersion = glGetString(GL_VERSION);
+    const GLubyte *rendererName = glGetString(GL_RENDERER);
+    const GLubyte *glslVersion = glGetString(GL_SHADING_LANGUAGE_VERSION);
+
+    printf("OpenGL实现厂商: %s\n", vendorName);
+    printf("渲染平台: %s\n", rendererName);
+    printf("shader语言版本: %s\n", glslVersion);
+    printf("OpenGL版本: %s\n", glVersion);
     // Main loop
     while (!glfwWindowShouldClose(window))
     {
@@ -554,7 +555,7 @@ int main(int, char **)
         glActiveTexture(GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_2D, emissiveMap);
 
-        glBindVertexArray(cubeVAO);
+        cubeVertexArray.Bind();
 
         for (unsigned int i = 0; i < 10; i++)
         {
@@ -576,7 +577,7 @@ int main(int, char **)
         lightCubeShader.setMat4("projection", projection);
         lightCubeShader.setMat4("view", view);
 
-        glBindVertexArray(lightCubeVAO);
+        lightVertexArray.Bind();
         for (unsigned int i = 0; i < 3; i++)
         {
             glm::mat4 model = glm::mat4(1.0f);

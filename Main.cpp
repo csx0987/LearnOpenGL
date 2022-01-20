@@ -21,6 +21,7 @@
 #include "indexBuffer.h"
 #include "vertexArray.h"
 #include "vertexBufferLayout.h"
+#include "renderer.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
@@ -172,16 +173,16 @@ const char *objPath = "../resources/models/nanosuit/nanosuit.obj";
 // const char *imgContainerPath = "../resources/textures/container.jpg";
 // const char *imgAwesomefacePath = "../resources/textures/awesomeface.png";
 #else
-const char *cubeVsPath = "../../shaders/cube.vs";
-const char *cubeFsPath = "../../shaders/cube.fs";
-const char *lightCubeVsPath = "../../shaders/light_cube.vs";
-const char *lightCubeFsPath = "../../shaders/light_cube.fs";
-const char *modelVsPath = "../../shaders/model.vs";
-const char *modelFsPath = "../../shaders/model.fs";
-const char *diffuseMapPath = "../../resources/textures/container2.png";
-const char *specularMapPath = "../../resources/textures/container2_specular.png";
-const char *emissiveMapPath = "../../resources/textures/matrix.jpeg";
-const char *objPath = "../../resources/models/nanosuit/nanosuit.obj";
+const char *cubeVsPath = "../../../shaders/cube.vs";
+const char *cubeFsPath = "../../../shaders/cube.fs";
+const char *lightCubeVsPath = "../../../shaders/light_cube.vs";
+const char *lightCubeFsPath = "../../../shaders/light_cube.fs";
+const char *modelVsPath = "../../../shaders/model.vs";
+const char *modelFsPath = "../../../shaders/model.fs";
+const char *diffuseMapPath = "../../../resources/textures/container2.png";
+const char *specularMapPath = "../../../resources/textures/container2_specular.png";
+const char *emissiveMapPath = "../../../resources/textures/matrix.jpeg";
+const char *objPath = "../../../resources/models/nanosuit/nanosuit.obj";
 // const char *imgContainerPath = "../../../resources/textures/container.jpg";
 // const char *imgAwesomefacePath = "../../../resources/textures/awesomeface.png";
 #endif
@@ -368,9 +369,8 @@ int main(int, char **)
 
     // Our state
     bool show_demo_window = false;
-    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+    glm::vec4 clear_color = glm::vec4(0.45f, 0.55f, 0.60f, 1.00f);
 
-    // ImVec4 diffuseFact = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
     ImVec4 specularFact = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
     float shininessFact = 36.0f;
 
@@ -426,10 +426,14 @@ int main(int, char **)
     const GLubyte *rendererName = glGetString(GL_RENDERER);
     const GLubyte *glslVersion = glGetString(GL_SHADING_LANGUAGE_VERSION);
 
-    printf("OpenGL实现厂商: %s\n", vendorName);
-    printf("渲染平台: %s\n", rendererName);
-    printf("shader语言版本: %s\n", glslVersion);
-    printf("OpenGL版本: %s\n", glVersion);
+    printf("VendorName: %s\n", vendorName);
+    printf("Renderer Device: %s\n", rendererName);
+    printf("GLSL Version: %s\n", glslVersion);
+    printf("OpenGL Version: %s\n", glVersion);
+
+    // 初始化渲染器
+    Renderer renderer;
+    renderer.SetBgColor(clear_color);
     // Main loop
     while (!glfwWindowShouldClose(window))
     {
@@ -468,11 +472,10 @@ int main(int, char **)
 
         // Rendering
         ImGui::Render();
-        glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
-        glClear(GL_COLOR_BUFFER_BIT);
 
         // 渲染代码
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        renderer.SetBgColor(clear_color);
+        renderer.Clear();
 
         cubeShader.use();
 
@@ -484,15 +487,11 @@ int main(int, char **)
         cubeShader.setVec3("viewPos", camera.Position);
 
         // material
-        // cubeShader.setVec3("material.diffuse", diffuseFact.x, diffuseFact.y, diffuseFact.z);
         cubeShader.setInt("material.diffuse", 0);
-        // cubeShader.setVec3("material.specular", specularFact.x, specularFact.y, specularFact.z);
         cubeShader.setInt("material.specular", 1);
         cubeShader.setInt("material.emissive", 2);
         cubeShader.setFloat("material.shininess", shininessFact);
 
-        // light.position = camera.Position;
-        // light.direction = camera.Front;
         spotLight.position = camera.Position;
         spotLight.direction = camera.Front;
 
@@ -555,7 +554,7 @@ int main(int, char **)
         glActiveTexture(GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_2D, emissiveMap);
 
-        cubeVertexArray.Bind();
+        //cubeVertexArray.Bind();
 
         for (unsigned int i = 0; i < 10; i++)
         {
@@ -568,7 +567,8 @@ int main(int, char **)
             cubeShader.setMat4("invModel", invModel);
 
             // glDrawArrays(GL_TRIANGLES, 0, 36);
-            glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+            //glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+            renderer.Draw(cubeVertexArray, cubeIndexBuffer, cubeShader);
         }
 
         // glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
@@ -577,14 +577,15 @@ int main(int, char **)
         lightCubeShader.setMat4("projection", projection);
         lightCubeShader.setMat4("view", view);
 
-        lightVertexArray.Bind();
+        //lightVertexArray.Bind();
         for (unsigned int i = 0; i < 3; i++)
         {
             glm::mat4 model = glm::mat4(1.0f);
             model = glm::translate(model, pointLights[i].position);
             model = glm::scale(model, glm::vec3(0.2f));
             lightCubeShader.setMat4("model", model);
-            glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+            //glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+            renderer.Draw(lightVertexArray, cubeIndexBuffer, lightCubeShader);
         }
 
         // 渲染模型
@@ -604,11 +605,6 @@ int main(int, char **)
 
         glfwSwapBuffers(window);
     }
-
-    // 清除shader
-    // glDeleteProgram(shaderProgram);
-    cubeShader.release();
-    lightCubeShader.release();
 
     // 清理texture
     glDeleteTextures(1, &diffuseMap);

@@ -2,6 +2,7 @@
 #include "glad/glad.h"
 
 IndexBuffer::IndexBuffer(const unsigned int *data, unsigned int count)
+    :mCount(count)
 {
     glGenBuffers(1, &mRenderID);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mRenderID);

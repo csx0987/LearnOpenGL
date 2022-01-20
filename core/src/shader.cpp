@@ -59,7 +59,12 @@ Shader::Shader(const char *vertexPath, const char *fragmentPath)
     glDeleteShader(fragment);
 }
 
-void Shader::use()
+Shader::~Shader()
+{
+    glDeleteShader(ID);
+}
+
+void Shader::use() const
 {
     glUseProgram(ID);
 }
@@ -99,10 +104,10 @@ void Shader::setMat4(const std::string &name, glm::mat4 &trans) const
     glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, glm::value_ptr(trans));
 }
 
-void Shader::release()
-{
-    glDeleteShader(ID);
-}
+//void Shader::release()
+//{
+//    glDeleteShader(ID);
+//}
 
 void Shader::checkCompileErrors(unsigned int shader, std::string type)
 {

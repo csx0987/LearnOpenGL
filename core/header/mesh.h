@@ -30,7 +30,7 @@ struct Vertex
     float m_Weights[MAX_BONE_INFLUENCE];
 };
 
-struct Texture
+struct MeshTexture
 {
     unsigned int id;
     std::string type;
@@ -42,10 +42,10 @@ class Mesh
 public:
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
-    std::vector<Texture> textures;
+    std::vector<MeshTexture> textures;
     unsigned int VAO;
 
-    Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures);
+    Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<MeshTexture> textures);
     void Draw(Shader &shader);
 
 private:

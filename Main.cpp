@@ -22,8 +22,7 @@
 #include "vertexArray.h"
 #include "vertexBufferLayout.h"
 #include "renderer.h"
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+#include "texture.h"
 
 // matrix
 #include <glm/glm.hpp>
@@ -46,7 +45,6 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void processInput(GLFWwindow *window);
 void mouse_callback(GLFWwindow *window, double xpos, double ypos);
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
-unsigned int loadTexture(char const *path);
 
 const unsigned int SCR_WIDTH = 1280;
 const unsigned int SCR_HEIGHT = 720;
@@ -329,9 +327,9 @@ int main(int, char **)
     glBindVertexArray(0);
 
     // 载入贴图
-    unsigned int diffuseMap = loadTexture(diffuseMapPath);
-    unsigned int specularMap = loadTexture(specularMapPath);
-    unsigned int emissiveMap = loadTexture(emissiveMapPath);
+    Texture diffuseMap = Texture(diffuseMapPath);
+    Texture specularMap = Texture(specularMapPath);
+    Texture emissiveMap = Texture(emissiveMapPath);
 
     // 载入模型
     Model ourModel(objPath);
@@ -545,16 +543,19 @@ int main(int, char **)
         cubeShader.setFloat("spotLight.outerCutOff", spotLight.outerCutOff);
 
         // texture
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, diffuseMap);
+        // glActiveTexture(GL_TEXTURE0);
+        // glBindTexture(GL_TEXTURE_2D, diffuseMap);
+        diffuseMap.Bind(0);
 
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, specularMap);
+        // glActiveTexture(GL_TEXTURE1);
+        // glBindTexture(GL_TEXTURE_2D, specularMap);
+        specularMap.Bind(1);
 
-        glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, emissiveMap);
+        // glActiveTexture(GL_TEXTURE2);
+        // glBindTexture(GL_TEXTURE_2D, emissiveMap);
+        emissiveMap.Bind(2);
 
-        //cubeVertexArray.Bind();
+        // cubeVertexArray.Bind();
 
         for (unsigned int i = 0; i < 10; i++)
         {
@@ -567,7 +568,7 @@ int main(int, char **)
             cubeShader.setMat4("invModel", invModel);
 
             // glDrawArrays(GL_TRIANGLES, 0, 36);
-            //glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+            // glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
             renderer.Draw(cubeVertexArray, cubeIndexBuffer, cubeShader);
         }
 
@@ -577,14 +578,14 @@ int main(int, char **)
         lightCubeShader.setMat4("projection", projection);
         lightCubeShader.setMat4("view", view);
 
-        //lightVertexArray.Bind();
+        // lightVertexArray.Bind();
         for (unsigned int i = 0; i < 3; i++)
         {
             glm::mat4 model = glm::mat4(1.0f);
             model = glm::translate(model, pointLights[i].position);
             model = glm::scale(model, glm::vec3(0.2f));
             lightCubeShader.setMat4("model", model);
-            //glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+            // glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
             renderer.Draw(lightVertexArray, cubeIndexBuffer, lightCubeShader);
         }
 
@@ -605,11 +606,6 @@ int main(int, char **)
 
         glfwSwapBuffers(window);
     }
-
-    // 清理texture
-    glDeleteTextures(1, &diffuseMap);
-    glDeleteTextures(1, &specularMap);
-    glDeleteTextures(1, &emissiveMap);
 
     // Cleanup
     ImGui_ImplOpenGL3_Shutdown();
@@ -680,41 +676,4 @@ void mouse_callback(GLFWwindow *window, double xpos, double ypos)
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
 {
     camera.ProcessMouseScroll(yoffset);
-}
-
-unsigned int loadTexture(char const *path)
-{
-    unsigned int textureID;
-    glGenTextures(1, &textureID);
-
-    int width, height, nrComponents;
-    unsigned char *data = stbi_load(path, &width, &height, &nrComponents, 0);
-    if (data)
-    {
-        GLenum format;
-        if (nrComponents == 1)
-            format = GL_RED;
-        else if (nrComponents == 3)
-            format = GL_RGB;
-        else if (nrComponents == 4)
-            format = GL_RGBA;
-
-        glBindTexture(GL_TEXTURE_2D, textureID);
-        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-        stbi_image_free(data);
-    }
-    else
-    {
-        std::cout << "Texture failed to load at path: " << path << std::endl;
-        stbi_image_free(data);
-    }
-
-    return textureID;
 }

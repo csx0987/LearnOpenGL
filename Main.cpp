@@ -23,6 +23,9 @@
 #include "vertexBufferLayout.h"
 #include "renderer.h"
 #include "texture.h"
+#include "testUnit/baseTest.h"
+#include "testUnit/testClearColor.h"
+#include "testUnit/testMenu.h"
 
 // matrix
 #include <glm/glm.hpp>
@@ -409,6 +412,14 @@ int main(int, char **)
     // 初始化渲染器
     Renderer renderer;
     renderer.SetBgColor(clear_color);
+
+    // 测试测试场景
+    Test::BaseTest* current = nullptr;
+    Test::TestMenu* testMenu = new Test::TestMenu(current);
+    current = testMenu;
+
+    testMenu->RegistTest<Test::TestClearColor>("clear color");
+
     // Main loop
     while (!glfwWindowShouldClose(window))
     {
@@ -416,157 +427,174 @@ int main(int, char **)
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
-        // 渲染代码
-        renderer.SetBgColor(clear_color);
-        renderer.Clear();
-
+        
+        
         // Start the Dear ImGui frame
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
-        if (show_demo_window)
+        if (current)
         {
-            ImGui::ShowDemoWindow(&show_demo_window);
+            current->OnUpdate(deltaTime);
+
+            current->OnRender();
+            ImGui::Begin("Test");
+            if (current != testMenu && ImGui::Button("<-"))
+            {
+                delete current;
+                current = testMenu;
+            }
+            current->OnImGuiRender();
+            ImGui::End();
         }
+        
+        //// 渲染代码
+        //renderer.SetBgColor(clear_color);
+        //renderer.Clear();
 
-        ImGui::Begin("Hello, world!"); // Create a window called "Hello, world!" and append into it.
+        //// 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
+        //if (show_demo_window)
+        //{
+        //    ImGui::ShowDemoWindow(&show_demo_window);
+        //}
 
-        ImGui::Text("This is some useful text.");          // Display some text (you can use a format strings too)
-        ImGui::Checkbox("Demo Window", &show_demo_window); // Edit bools storing our window open/close state
+        //ImGui::Begin("Hello, world!"); // Create a window called "Hello, world!" and append into it.
 
-        ImGui::ColorEdit3("clear color", (float *)&clear_color); // Edit 3 floats representing a color
+        //ImGui::Text("This is some useful text.");          // Display some text (you can use a format strings too)
+        //ImGui::Checkbox("Demo Window", &show_demo_window); // Edit bools storing our window open/close state
 
-        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-        ImGui::End();
+        //ImGui::ColorEdit3("clear color", (float *)&clear_color); // Edit 3 floats representing a color
 
-        // Rendering
-        cubeShader.use();
+        //ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+        //ImGui::End();
 
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-        glm::mat4 view = camera.GetViewMatrix();
-        cubeShader.setMat4("projection", projection);
-        cubeShader.setMat4("view", view);
+        //// Rendering
+        //cubeShader.use();
 
-        cubeShader.setVec3("viewPos", camera.Position);
+        //glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+        //glm::mat4 view = camera.GetViewMatrix();
+        //cubeShader.setMat4("projection", projection);
+        //cubeShader.setMat4("view", view);
 
-        // material
-        cubeShader.setInt("material.diffuse", 0);
-        cubeShader.setInt("material.specular", 1);
-        cubeShader.setInt("material.emissive", 2);
-        cubeShader.setFloat("material.shininess", shininessFact);
+        //cubeShader.setVec3("viewPos", camera.Position);
 
-        spotLight.position = camera.Position;
-        spotLight.direction = camera.Front;
+        //// material
+        //cubeShader.setInt("material.diffuse", 0);
+        //cubeShader.setInt("material.specular", 1);
+        //cubeShader.setInt("material.emissive", 2);
+        //cubeShader.setFloat("material.shininess", shininessFact);
 
-        // light
-        // Direction Light
-        cubeShader.setVec3("dirLight.direction", dirLight.direction);
-        cubeShader.setVec3("dirLight.ambient", dirLight.ambient);
-        cubeShader.setVec3("dirLight.diffuse", dirLight.diffuse);
-        cubeShader.setVec3("dirLight.specular", dirLight.specular);
+        //spotLight.position = camera.Position;
+        //spotLight.direction = camera.Front;
 
-        // Point Light
-        const char *attr1 = "position";
-        const char *attr2 = "ambient";
-        const char *attr3 = "diffuse";
-        const char *attr4 = "specular";
-        const char *attr5 = "constant";
-        const char *attr6 = "linear";
-        const char *attr7 = "quadratic";
-        char prefix[100]; // temp;
-        for (unsigned int i = 0; i < 3; i++)
-        {
-            sprintf(prefix, "%s%d%s", "pointLights[", i, "].");
-            char temp[100];
+        //// light
+        //// Direction Light
+        //cubeShader.setVec3("dirLight.direction", dirLight.direction);
+        //cubeShader.setVec3("dirLight.ambient", dirLight.ambient);
+        //cubeShader.setVec3("dirLight.diffuse", dirLight.diffuse);
+        //cubeShader.setVec3("dirLight.specular", dirLight.specular);
 
-            sprintf(temp, "%s%s", prefix, attr1);
-            cubeShader.setVec3(temp, pointLights[i].position);
-            sprintf(temp, "%s%s", prefix, attr2);
-            cubeShader.setVec3(temp, pointLights[i].ambient);
-            sprintf(temp, "%s%s", prefix, attr3);
-            cubeShader.setVec3(temp, pointLights[i].diffuse);
-            sprintf(temp, "%s%s", prefix, attr4);
-            cubeShader.setVec3(temp, pointLights[i].specular);
-            sprintf(temp, "%s%s", prefix, attr5);
-            cubeShader.setFloat(temp, pointLights[i].constant);
-            sprintf(temp, "%s%s", prefix, attr6);
-            cubeShader.setFloat(temp, pointLights[i].linear);
-            sprintf(temp, "%s%s", prefix, attr7);
-            cubeShader.setFloat(temp, pointLights[i].quadratic);
-        }
+        //// Point Light
+        //const char *attr1 = "position";
+        //const char *attr2 = "ambient";
+        //const char *attr3 = "diffuse";
+        //const char *attr4 = "specular";
+        //const char *attr5 = "constant";
+        //const char *attr6 = "linear";
+        //const char *attr7 = "quadratic";
+        //char prefix[100]; // temp;
+        //for (unsigned int i = 0; i < 3; i++)
+        //{
+        //    sprintf(prefix, "%s%d%s", "pointLights[", i, "].");
+        //    char temp[100];
 
-        // Spot Light
-        cubeShader.setVec3("spotLight.position", spotLight.position);
-        cubeShader.setVec3("spotLight.direction", spotLight.direction);
-        cubeShader.setVec3("spotLight.ambient", spotLight.ambient);
-        cubeShader.setVec3("spotLight.diffuse", spotLight.diffuse);
-        cubeShader.setVec3("spotLight.specular", spotLight.specular);
-        cubeShader.setFloat("spotLight.constant", spotLight.constant);
-        cubeShader.setFloat("spotLight.linear", spotLight.linear);
-        cubeShader.setFloat("spotLight.quadratic", spotLight.quadratic);
-        cubeShader.setFloat("spotLight.cutOff", spotLight.cutOff);
-        cubeShader.setFloat("spotLight.outerCutOff", spotLight.outerCutOff);
+        //    sprintf(temp, "%s%s", prefix, attr1);
+        //    cubeShader.setVec3(temp, pointLights[i].position);
+        //    sprintf(temp, "%s%s", prefix, attr2);
+        //    cubeShader.setVec3(temp, pointLights[i].ambient);
+        //    sprintf(temp, "%s%s", prefix, attr3);
+        //    cubeShader.setVec3(temp, pointLights[i].diffuse);
+        //    sprintf(temp, "%s%s", prefix, attr4);
+        //    cubeShader.setVec3(temp, pointLights[i].specular);
+        //    sprintf(temp, "%s%s", prefix, attr5);
+        //    cubeShader.setFloat(temp, pointLights[i].constant);
+        //    sprintf(temp, "%s%s", prefix, attr6);
+        //    cubeShader.setFloat(temp, pointLights[i].linear);
+        //    sprintf(temp, "%s%s", prefix, attr7);
+        //    cubeShader.setFloat(temp, pointLights[i].quadratic);
+        //}
 
-        // texture
-        // glActiveTexture(GL_TEXTURE0);
-        // glBindTexture(GL_TEXTURE_2D, diffuseMap);
-        diffuseMap.Bind(0);
+        //// Spot Light
+        //cubeShader.setVec3("spotLight.position", spotLight.position);
+        //cubeShader.setVec3("spotLight.direction", spotLight.direction);
+        //cubeShader.setVec3("spotLight.ambient", spotLight.ambient);
+        //cubeShader.setVec3("spotLight.diffuse", spotLight.diffuse);
+        //cubeShader.setVec3("spotLight.specular", spotLight.specular);
+        //cubeShader.setFloat("spotLight.constant", spotLight.constant);
+        //cubeShader.setFloat("spotLight.linear", spotLight.linear);
+        //cubeShader.setFloat("spotLight.quadratic", spotLight.quadratic);
+        //cubeShader.setFloat("spotLight.cutOff", spotLight.cutOff);
+        //cubeShader.setFloat("spotLight.outerCutOff", spotLight.outerCutOff);
 
-        // glActiveTexture(GL_TEXTURE1);
-        // glBindTexture(GL_TEXTURE_2D, specularMap);
-        specularMap.Bind(1);
+        //// texture
+        //// glActiveTexture(GL_TEXTURE0);
+        //// glBindTexture(GL_TEXTURE_2D, diffuseMap);
+        //diffuseMap.Bind(0);
 
-        // glActiveTexture(GL_TEXTURE2);
-        // glBindTexture(GL_TEXTURE_2D, emissiveMap);
-        emissiveMap.Bind(2);
+        //// glActiveTexture(GL_TEXTURE1);
+        //// glBindTexture(GL_TEXTURE_2D, specularMap);
+        //specularMap.Bind(1);
 
-        // cubeVertexArray.Bind();
+        //// glActiveTexture(GL_TEXTURE2);
+        //// glBindTexture(GL_TEXTURE_2D, emissiveMap);
+        //emissiveMap.Bind(2);
 
-        for (unsigned int i = 0; i < 10; i++)
-        {
-            glm::mat4 model = glm::mat4(1.0f);
-            model = glm::translate(model, cubePositions[i]);
-            float angle = 20.0f * i;
-            model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
-            cubeShader.setMat4("model", model);
-            glm::mat4 invModel = glm::inverse(model);
-            cubeShader.setMat4("invModel", invModel);
+        //// cubeVertexArray.Bind();
 
-            // glDrawArrays(GL_TRIANGLES, 0, 36);
-            // glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
-            renderer.Draw(cubeVertexArray, cubeIndexBuffer, cubeShader);
-        }
+        //for (unsigned int i = 0; i < 10; i++)
+        //{
+        //    glm::mat4 model = glm::mat4(1.0f);
+        //    model = glm::translate(model, cubePositions[i]);
+        //    float angle = 20.0f * i;
+        //    model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+        //    cubeShader.setMat4("model", model);
+        //    glm::mat4 invModel = glm::inverse(model);
+        //    cubeShader.setMat4("invModel", invModel);
 
-        // glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+        //    // glDrawArrays(GL_TRIANGLES, 0, 36);
+        //    // glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+        //    renderer.Draw(cubeVertexArray, cubeIndexBuffer, cubeShader);
+        //}
 
-        lightCubeShader.use();
-        lightCubeShader.setMat4("projection", projection);
-        lightCubeShader.setMat4("view", view);
+        //// glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 
-        // lightVertexArray.Bind();
-        for (unsigned int i = 0; i < 3; i++)
-        {
-            glm::mat4 model = glm::mat4(1.0f);
-            model = glm::translate(model, pointLights[i].position);
-            model = glm::scale(model, glm::vec3(0.2f));
-            lightCubeShader.setMat4("model", model);
-            // glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
-            renderer.Draw(lightVertexArray, cubeIndexBuffer, lightCubeShader);
-        }
+        //lightCubeShader.use();
+        //lightCubeShader.setMat4("projection", projection);
+        //lightCubeShader.setMat4("view", view);
 
-        // 渲染模型
-        modelShader.use();
-        modelShader.setMat4("projection", projection);
-        modelShader.setMat4("view", view);
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f)); // translate it down so it's at the center of the scene
-        model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));     // it's a bit too big for our scene, so scale it down
-        modelShader.setMat4("model", model);
-        ourModel.Draw(modelShader);
+        //// lightVertexArray.Bind();
+        //for (unsigned int i = 0; i < 3; i++)
+        //{
+        //    glm::mat4 model = glm::mat4(1.0f);
+        //    model = glm::translate(model, pointLights[i].position);
+        //    model = glm::scale(model, glm::vec3(0.2f));
+        //    lightCubeShader.setMat4("model", model);
+        //    // glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+        //    renderer.Draw(lightVertexArray, cubeIndexBuffer, lightCubeShader);
+        //}
 
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        //// 渲染模型
+        //modelShader.use();
+        //modelShader.setMat4("projection", projection);
+        //modelShader.setMat4("view", view);
+        //glm::mat4 model = glm::mat4(1.0f);
+        //model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f)); // translate it down so it's at the center of the scene
+        //model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));     // it's a bit too big for our scene, so scale it down
+        //modelShader.setMat4("model", model);
+        //ourModel.Draw(modelShader);
+
+        //glBindBuffer(GL_ARRAY_BUFFER, 0);
 
         // imgui
         ImGui::Render();
@@ -574,10 +602,11 @@ int main(int, char **)
 
         glfwSwapBuffers(window);
 
-        processInput(window);
+        //processInput(window);
         glfwPollEvents();
     }
 
+    delete testMenu;
     // Cleanup
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();

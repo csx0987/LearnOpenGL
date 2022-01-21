@@ -61,6 +61,7 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/thridPart/include")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/thridPart/imgui") 
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/thridPart")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/core/header")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/testUnit")
 
 
 file ( GLOB glad_header_files "${CMAKE_SOURCE_DIR}/thridPart/include/glad/*.h" )
@@ -71,11 +72,14 @@ file ( GLOB imgui_src_files "${CMAKE_SOURCE_DIR}/thridPart/imgui/*.cpp" )
 file ( GLOB core_header_files "${CMAKE_SOURCE_DIR}/core/header/*.h" )
 file ( GLOB core_src_files "${CMAKE_SOURCE_DIR}/core/src/*.cpp" )
 file ( GLOB glm_header_files "${CMAKE_SOURCE_DIR}/thridPart/glm/*.hpp" )
+file ( GLOB test_header_files "${CMAKE_SOURCE_DIR}/testUnit/*.h" )
+file ( GLOB test_src_files "${CMAKE_SOURCE_DIR}/testUnit/*.cpp" )
 
 #src
 list ( APPEND PRJ_SRC_LIST ${glad_src_files} )
 list ( APPEND PRJ_SRC_LIST ${imgui_src_files} )
 list ( APPEND PRJ_SRC_LIST ${core_src_files} )
+list ( APPEND PRJ_SRC_LIST ${test_src_files} )
 
 # header
 list ( APPEND PRJ_INCLUDE_DIRS ${glad_header_files} )
@@ -86,6 +90,7 @@ list ( APPEND PRJ_INCLUDE_DIRS ${MY_ASSIMP_INC} )
 list ( APPEND PRJ_INCLUDE_DIRS ${imgui_header_files} )
 list ( APPEND PRJ_INCLUDE_DIRS ${core_header_files} )
 list ( APPEND PRJ_INCLUDE_DIRS ${glm_header_files} )
+list ( APPEND PRJ_INCLUDE_DIRS ${test_header_files} )
 
 # 动态链接库
 list ( APPEND PRJ_LIBRARIES ${MY_GLFW_LIB} )

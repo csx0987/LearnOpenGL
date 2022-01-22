@@ -26,6 +26,7 @@
 #include "testUnit/baseTest.h"
 #include "testUnit/testClearColor.h"
 #include "testUnit/testMenu.h"
+#include "testUnit/testCube.h"
 
 // matrix
 #include <glm/glm.hpp>
@@ -61,104 +62,6 @@ float lastY = SCR_HEIGHT / 2.0f;
 // timing
 float deltaTime = 0.0f; // time between current frame and last frame
 float lastFrame = 0.0f;
-
-// lighting
-struct Light
-{
-    glm::vec3 color;
-    glm::vec3 position;
-    glm::vec3 direction;
-
-    glm::vec3 ambient;
-    glm::vec3 diffuse;
-    glm::vec3 specular;
-
-    float constant;
-    float linear;
-    float quadratic;
-    float cutOff;
-    float outerCutOff;
-};
-
-struct BaseLight
-{
-    glm::vec3 ambient;
-    glm::vec3 diffuse;
-    glm::vec3 specular;
-};
-
-struct DirLight : BaseLight // 平行光，暂只有一个
-{
-    glm::vec3 direction;
-};
-
-struct PointLight : BaseLight
-{
-    glm::vec3 position;
-
-    float constant;
-    float linear;
-    float quadratic;
-};
-
-struct SpotLight : BaseLight
-{
-    glm::vec3 position;
-    glm::vec3 direction;
-
-    float cutOff;
-    float outerCutOff;
-
-    float constant;
-    float linear;
-    float quadratic;
-};
-
-// box
-glm::vec3 cubePositions[] = {
-    glm::vec3(0.0f, 0.0f, 0.0f),
-    glm::vec3(2.0f, 5.0f, -15.0f),
-    glm::vec3(-1.5f, -2.2f, -2.5f),
-    glm::vec3(-3.8f, -2.0f, -12.3f),
-    glm::vec3(2.4f, -0.4f, -3.5f),
-    glm::vec3(-1.7f, 3.0f, -7.5f),
-    glm::vec3(1.3f, -2.0f, -2.5f),
-    glm::vec3(1.5f, 2.0f, -2.5f),
-    glm::vec3(1.5f, 0.2f, -1.5f),
-    glm::vec3(-1.3f, 1.0f, -1.5f)};
-
-glm::vec3 pointLightPosition[] = {
-    glm::vec3(0.7f, 0.2f, 2.0f),
-    glm::vec3(2.3f, -3.3f, -4.0f),
-    glm::vec3(-4.0f, 2.0f, -12.0f),
-    glm::vec3(0.0f, 0.0f, -3.0f)};
-
-glm::vec3 pointLightAmbient[] = {
-    glm::vec3(0.05f, 0.05f, 0.05f),
-    glm::vec3(0.05f, 0.05f, 0.05f),
-    glm::vec3(0.05f, 0.05f, 0.05f),
-};
-
-glm::vec3 pointLightDiffuse[] = {
-    glm::vec3(0.8f, 0.8f, 0.8f),
-    glm::vec3(0.8f, 0.8f, 0.8f),
-    glm::vec3(0.8f, 0.8f, 0.8f),
-};
-
-glm::vec3 pointLightSpecular[] = {
-    glm::vec3(1.0f, 1.0f, 1.0f),
-    glm::vec3(1.0f, 1.0f, 1.0f),
-    glm::vec3(1.0f, 1.0f, 1.0f),
-};
-
-float pointLightConstant[] = {
-    1.0f, 1.0f, 1.0f};
-
-float pointLightLinear[] = {
-    0.09f, 0.09f, 0.09f};
-
-float pointLightQuadratic[] = {
-    0.032f, 0.032f, 0.032f};
 
 #if defined(__APPLE__)
 const char *cubeVsPath = "../shaders/cube.vs";
@@ -237,102 +140,8 @@ int main(int, char **)
     }
 
     // 编译shader
-    // unsigned int shaderProgram;
-    Shader cubeShader(cubeVsPath, cubeFsPath);
-    Shader lightCubeShader(lightCubeVsPath, lightCubeFsPath);
     Shader modelShader(modelVsPath, modelFsPath);
 
-    // VBO VAO EBO
-    float vertices[] = {
-        // positions          // normals           // texture coords
-        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f,
-        0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f,
-        0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f,
-        0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f,
-        -0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f,
-
-        -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-        0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f,
-        0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,
-        0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,
-        -0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,
-        -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-
-        -0.5f, 0.5f, 0.5f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-        -0.5f, 0.5f, -0.5f, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-        -0.5f, -0.5f, 0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-        -0.5f, 0.5f, 0.5f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-
-        0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-        0.5f, 0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
-        0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-        0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-        0.5f, -0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-        0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-
-        -0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f,
-        0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f, 1.0f, 1.0f,
-        0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f,
-        0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f,
-        -0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f,
-        -0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f,
-
-        -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
-        0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f,
-        0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,
-        0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,
-        -0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
-        -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f};
-    unsigned int indices[] = {
-        0, 1, 2,
-        3, 4, 5,
-
-        6, 7, 8,
-        9, 10, 11,
-
-        12, 13, 14,
-        15, 16, 17,
-
-        18, 19, 20,
-        21, 22, 23,
-
-        24, 25, 26,
-        27, 28, 29,
-
-        30, 31, 32,
-        33, 34, 35};
-
-    VertexArray cubeVertexArray;
-    VertexBufferLayout cubeVertexBufferLayout;
-
-    cubeVertexBufferLayout.Push(GL_FLOAT, 3, false); // 顶点位置
-    cubeVertexBufferLayout.Push(GL_FLOAT, 3, true);  // 法线
-    cubeVertexBufferLayout.Push(GL_FLOAT, 2, false); // uv
-
-    VertexBuffer cubeVertexBuffer(vertices, sizeof(vertices));
-    IndexBuffer cubeIndexBuffer(indices, sizeof(indices) / sizeof(unsigned int));
-
-    cubeVertexArray.AddBuffer(cubeVertexBuffer, cubeVertexBufferLayout);
-    cubeIndexBuffer.Bind();
-
-    VertexArray lightVertexArray;
-    VertexBufferLayout lightVertexBufferLayout;
-    lightVertexBufferLayout.Push(GL_FLOAT, 3, false); // 顶点位置
-    lightVertexBufferLayout.Push(GL_FLOAT, 3, false);
-    lightVertexBufferLayout.Push(GL_FLOAT, 2, false);
-
-    lightVertexArray.AddBuffer(cubeVertexBuffer, cubeVertexBufferLayout);
-    cubeIndexBuffer.Bind();
-
-    glBindVertexArray(0);
-
-    // 载入贴图
-    Texture diffuseMap = Texture(diffuseMapPath);
-    Texture specularMap = Texture(specularMapPath);
-    Texture emissiveMap = Texture(emissiveMapPath);
 
     // 载入模型
     Model ourModel(objPath);
@@ -344,56 +153,6 @@ int main(int, char **)
 
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init(glsl_version);
-
-    // Our state
-    bool show_demo_window = false;
-    glm::vec4 clear_color = glm::vec4(0.45f, 0.55f, 0.60f, 1.00f);
-
-    ImVec4 specularFact = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
-    float shininessFact = 36.0f;
-
-    Light light;
-    light.color = glm::vec3(1.0f, 1.0f, 1.0f);
-    light.position = glm::vec3(1.2f, 1.0f, 2.0f);
-    light.ambient = glm::vec3(0.2f, 0.2f, 0.2f);
-    light.diffuse = glm::vec3(0.5f, 0.5f, 0.5f);
-    light.specular = glm::vec3(1.0f, 1.0f, 1.0f);
-    light.direction = glm::vec3(-0.2f, -1.0f, -0.3f);
-    light.constant = 1.0f;
-    light.linear = 0.09f;
-    light.quadratic = 0.032f;
-    light.cutOff = glm::cos(glm::radians(12.5f));
-    light.outerCutOff = glm::cos(glm::radians(17.5f));
-
-    DirLight dirLight;
-    dirLight.direction = glm::vec3(-0.2f, -1.0f, -0.3f);
-    dirLight.ambient = glm::vec3(0.05f, 0.05f, 0.05f);
-    dirLight.diffuse = glm::vec3(0.4f, 0.4f, 0.4f);
-    dirLight.specular = glm::vec3(0.5f, 0.5f, 0.5f);
-
-    PointLight pointLights[3];
-    for (unsigned int i = 0; i < 3; i++)
-    {
-        pointLights[i].position = pointLightPosition[i];
-        pointLights[i].ambient = pointLightAmbient[i];
-        pointLights[i].diffuse = pointLightDiffuse[i];
-        pointLights[i].specular = pointLightSpecular[i];
-        pointLights[i].constant = pointLightConstant[i];
-        pointLights[i].linear = pointLightLinear[i];
-        pointLights[i].quadratic = pointLightQuadratic[i];
-    }
-
-    SpotLight spotLight;
-    spotLight.position = camera.Position;
-    spotLight.direction = camera.Front;
-    spotLight.ambient = glm::vec3(0.0f, 0.0f, 0.0f);
-    spotLight.diffuse = glm::vec3(1.0f, 1.0f, 1.0f);
-    spotLight.specular = glm::vec3(1.0f, 1.0f, 1.0f);
-    spotLight.constant = 1.0f;
-    spotLight.linear = 0.09f;
-    spotLight.quadratic = 0.032f;
-    spotLight.cutOff = glm::cos(glm::radians(12.5f));
-    spotLight.outerCutOff = glm::cos(glm::radians(15.0f));
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BACK);
@@ -409,16 +168,13 @@ int main(int, char **)
     printf("GLSL Version: %s\n", glslVersion);
     printf("OpenGL Version: %s\n", glVersion);
 
-    // 初始化渲染器
-    Renderer renderer;
-    renderer.SetBgColor(clear_color);
-
-    // 测试测试场景
+    // 测试场景
     Test::BaseTest* current = nullptr;
     Test::TestMenu* testMenu = new Test::TestMenu(current);
     current = testMenu;
 
     testMenu->RegistTest<Test::TestClearColor>("clear color");
+    testMenu->RegistTest<Test::TestCube>("cube");
 
     // Main loop
     while (!glfwWindowShouldClose(window))
@@ -426,8 +182,6 @@ int main(int, char **)
         float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
-
-        
         
         // Start the Dear ImGui frame
         ImGui_ImplOpenGL3_NewFrame();
@@ -450,139 +204,6 @@ int main(int, char **)
         }
         
         //// 渲染代码
-        //renderer.SetBgColor(clear_color);
-        //renderer.Clear();
-
-        //// 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
-        //if (show_demo_window)
-        //{
-        //    ImGui::ShowDemoWindow(&show_demo_window);
-        //}
-
-        //ImGui::Begin("Hello, world!"); // Create a window called "Hello, world!" and append into it.
-
-        //ImGui::Text("This is some useful text.");          // Display some text (you can use a format strings too)
-        //ImGui::Checkbox("Demo Window", &show_demo_window); // Edit bools storing our window open/close state
-
-        //ImGui::ColorEdit3("clear color", (float *)&clear_color); // Edit 3 floats representing a color
-
-        //ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-        //ImGui::End();
-
-        //// Rendering
-        //cubeShader.use();
-
-        //glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-        //glm::mat4 view = camera.GetViewMatrix();
-        //cubeShader.setMat4("projection", projection);
-        //cubeShader.setMat4("view", view);
-
-        //cubeShader.setVec3("viewPos", camera.Position);
-
-        //// material
-        //cubeShader.setInt("material.diffuse", 0);
-        //cubeShader.setInt("material.specular", 1);
-        //cubeShader.setInt("material.emissive", 2);
-        //cubeShader.setFloat("material.shininess", shininessFact);
-
-        //spotLight.position = camera.Position;
-        //spotLight.direction = camera.Front;
-
-        //// light
-        //// Direction Light
-        //cubeShader.setVec3("dirLight.direction", dirLight.direction);
-        //cubeShader.setVec3("dirLight.ambient", dirLight.ambient);
-        //cubeShader.setVec3("dirLight.diffuse", dirLight.diffuse);
-        //cubeShader.setVec3("dirLight.specular", dirLight.specular);
-
-        //// Point Light
-        //const char *attr1 = "position";
-        //const char *attr2 = "ambient";
-        //const char *attr3 = "diffuse";
-        //const char *attr4 = "specular";
-        //const char *attr5 = "constant";
-        //const char *attr6 = "linear";
-        //const char *attr7 = "quadratic";
-        //char prefix[100]; // temp;
-        //for (unsigned int i = 0; i < 3; i++)
-        //{
-        //    sprintf(prefix, "%s%d%s", "pointLights[", i, "].");
-        //    char temp[100];
-
-        //    sprintf(temp, "%s%s", prefix, attr1);
-        //    cubeShader.setVec3(temp, pointLights[i].position);
-        //    sprintf(temp, "%s%s", prefix, attr2);
-        //    cubeShader.setVec3(temp, pointLights[i].ambient);
-        //    sprintf(temp, "%s%s", prefix, attr3);
-        //    cubeShader.setVec3(temp, pointLights[i].diffuse);
-        //    sprintf(temp, "%s%s", prefix, attr4);
-        //    cubeShader.setVec3(temp, pointLights[i].specular);
-        //    sprintf(temp, "%s%s", prefix, attr5);
-        //    cubeShader.setFloat(temp, pointLights[i].constant);
-        //    sprintf(temp, "%s%s", prefix, attr6);
-        //    cubeShader.setFloat(temp, pointLights[i].linear);
-        //    sprintf(temp, "%s%s", prefix, attr7);
-        //    cubeShader.setFloat(temp, pointLights[i].quadratic);
-        //}
-
-        //// Spot Light
-        //cubeShader.setVec3("spotLight.position", spotLight.position);
-        //cubeShader.setVec3("spotLight.direction", spotLight.direction);
-        //cubeShader.setVec3("spotLight.ambient", spotLight.ambient);
-        //cubeShader.setVec3("spotLight.diffuse", spotLight.diffuse);
-        //cubeShader.setVec3("spotLight.specular", spotLight.specular);
-        //cubeShader.setFloat("spotLight.constant", spotLight.constant);
-        //cubeShader.setFloat("spotLight.linear", spotLight.linear);
-        //cubeShader.setFloat("spotLight.quadratic", spotLight.quadratic);
-        //cubeShader.setFloat("spotLight.cutOff", spotLight.cutOff);
-        //cubeShader.setFloat("spotLight.outerCutOff", spotLight.outerCutOff);
-
-        //// texture
-        //// glActiveTexture(GL_TEXTURE0);
-        //// glBindTexture(GL_TEXTURE_2D, diffuseMap);
-        //diffuseMap.Bind(0);
-
-        //// glActiveTexture(GL_TEXTURE1);
-        //// glBindTexture(GL_TEXTURE_2D, specularMap);
-        //specularMap.Bind(1);
-
-        //// glActiveTexture(GL_TEXTURE2);
-        //// glBindTexture(GL_TEXTURE_2D, emissiveMap);
-        //emissiveMap.Bind(2);
-
-        //// cubeVertexArray.Bind();
-
-        //for (unsigned int i = 0; i < 10; i++)
-        //{
-        //    glm::mat4 model = glm::mat4(1.0f);
-        //    model = glm::translate(model, cubePositions[i]);
-        //    float angle = 20.0f * i;
-        //    model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
-        //    cubeShader.setMat4("model", model);
-        //    glm::mat4 invModel = glm::inverse(model);
-        //    cubeShader.setMat4("invModel", invModel);
-
-        //    // glDrawArrays(GL_TRIANGLES, 0, 36);
-        //    // glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
-        //    renderer.Draw(cubeVertexArray, cubeIndexBuffer, cubeShader);
-        //}
-
-        //// glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
-
-        //lightCubeShader.use();
-        //lightCubeShader.setMat4("projection", projection);
-        //lightCubeShader.setMat4("view", view);
-
-        //// lightVertexArray.Bind();
-        //for (unsigned int i = 0; i < 3; i++)
-        //{
-        //    glm::mat4 model = glm::mat4(1.0f);
-        //    model = glm::translate(model, pointLights[i].position);
-        //    model = glm::scale(model, glm::vec3(0.2f));
-        //    lightCubeShader.setMat4("model", model);
-        //    // glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
-        //    renderer.Draw(lightVertexArray, cubeIndexBuffer, lightCubeShader);
-        //}
 
         //// 渲染模型
         //modelShader.use();

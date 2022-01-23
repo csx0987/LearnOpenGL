@@ -15,7 +15,7 @@ void Mesh::Draw(Shader &shader)
     unsigned int specularNr = 1;
     unsigned int normalNr = 1;
     unsigned int heightNr = 1;
-
+    shader.use();
     for (unsigned int i = 0; i < textures.size(); i++)
     {
         glActiveTexture(GL_TEXTURE0 + i);
@@ -38,7 +38,6 @@ void Mesh::Draw(Shader &shader)
 
     // draw mesh
     glBindVertexArray(VAO);
-    shader.use();
     glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
 

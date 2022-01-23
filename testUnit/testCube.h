@@ -14,10 +14,10 @@ namespace Test
 	{
 	public:
 		TestCube();
-		~TestCube();
+		~TestCube() override;
 
         void OnRender() override;
-        void OnImGuiRender();
+        void OnImGuiRender() override;
 
 	private:
         Shader* pCubeShader;
@@ -31,24 +31,5 @@ namespace Test
 		Texture* pEmissiveMap;
         Camera* pCamera;
         Renderer* pRenderer;
-
-
-#if defined(__APPLE__)
-        const char* cubeVsPath = "../shaders/cube.vs";
-        const char* cubeFsPath = "../shaders/cube.fs";
-        const char* lightCubeVsPath = "../shaders/light_cube.vs";
-        const char* lightCubeFsPath = "../shaders/light_cube.fs";
-        const char* diffuseMapPath = "../resources/textures/container2.png";
-        const char* specularMapPath = "../resources/textures/container2_specular.png";
-        const char* emissiveMapPath = "../resources/textures/matrix.jpeg";
-#else
-        const char* cubeVsPath = "../../../shaders/cube.vs";
-        const char* cubeFsPath = "../../../shaders/cube.fs";
-        const char* lightCubeVsPath = "../../../shaders/light_cube.vs";
-        const char* lightCubeFsPath = "../../../shaders/light_cube.fs";
-        const char* diffuseMapPath = "../../../resources/textures/container2.png";
-        const char* specularMapPath = "../../../resources/textures/container2_specular.png";
-        const char* emissiveMapPath = "../../../resources/textures/matrix.jpeg";
-#endif
     };
 }

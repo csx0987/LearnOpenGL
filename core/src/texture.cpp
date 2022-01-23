@@ -1,9 +1,5 @@
 #include "texture.h"
 #include "glad/glad.h"
-
-#ifndef STB_IMAGE_IMPLEMENTATION
-#define STB_IMAGE_IMPLEMENTATION
-#endif
 #include "stb_image.h"
 
 // TODO mipmap

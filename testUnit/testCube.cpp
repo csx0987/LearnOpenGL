@@ -1,10 +1,9 @@
 #include "testCube.h"
 #include "vertexBufferLayout.h"
+#include "constant.h"
 
 namespace Test
 {
-	const unsigned int SCR_WIDTH = 1280;
-	const unsigned int SCR_HEIGHT = 720;
 	float shininessFact = 36.0f;
 	// lighting
 	struct Light
@@ -177,8 +176,8 @@ namespace Test
 	    
         pCamera = new Camera(glm::vec3(0.0f, 0.0f, 3.0f));
         // init shader
-        pCubeShader = new Shader(cubeVsPath, cubeFsPath);
-        pLightCubeShader = new Shader(lightCubeVsPath, lightCubeFsPath);
+        pCubeShader = new Shader(Constant::cubeVsPath, Constant::cubeFsPath);
+        pLightCubeShader = new Shader(Constant::lightCubeVsPath, Constant::lightCubeFsPath);
 
         // cube
         pCubeVertexArray = new VertexArray();
@@ -206,9 +205,9 @@ namespace Test
         glBindVertexArray(0);
 
         // Texture
-		pDiffuseMap = new Texture(diffuseMapPath);
-		pSpecularMap = new Texture(specularMapPath);
-		pEmissiveMap = new Texture(emissiveMapPath);
+		pDiffuseMap = new Texture(Constant::diffuseMapPath);
+		pSpecularMap = new Texture(Constant::specularMapPath);
+		pEmissiveMap = new Texture(Constant::emissiveMapPath);
 
 		
 		light.color = glm::vec3(1.0f, 1.0f, 1.0f);
@@ -278,7 +277,7 @@ namespace Test
 		// Rendering
 		pCubeShader->use();
 
-		glm::mat4 projection = glm::perspective(glm::radians(pCamera->Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+		glm::mat4 projection = glm::perspective(glm::radians(pCamera->Zoom), (float)Constant::SCR_WIDTH / (float)Constant::SCR_HEIGHT, 0.1f, 100.0f);
 		glm::mat4 view = pCamera->GetViewMatrix();
 		pCubeShader->setMat4("projection", projection);
 		pCubeShader->setMat4("view", view);

@@ -7,26 +7,21 @@
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
-#include <stdio.h>
+#include <cstdio>
 #if defined(IMGUI_IMPL_OPENGL_ES2)
 #include <GLES2/gl2.h>
 #endif
 #include <GLFW/glfw3.h> // Will drag system OpenGL headers
-#include <cmath>
-
+#define STB_IMAGE_IMPLEMENTATION
+#include "constant.h"
 #include "shader.h"
 #include "camera.h"
 #include "model.h"
-#include "vertexBuffer.h"
-#include "indexBuffer.h"
-#include "vertexArray.h"
-#include "vertexBufferLayout.h"
-#include "renderer.h"
-#include "texture.h"
 #include "testUnit/baseTest.h"
 #include "testUnit/testClearColor.h"
 #include "testUnit/testMenu.h"
 #include "testUnit/testCube.h"
+#include "testUnit/testModel.h"
 
 // matrix
 #include <glm/glm.hpp>
@@ -50,46 +45,15 @@ void processInput(GLFWwindow *window);
 void mouse_callback(GLFWwindow *window, double xpos, double ypos);
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 
-const unsigned int SCR_WIDTH = 1280;
-const unsigned int SCR_HEIGHT = 720;
-
 // camera
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 bool firstMouse = true;
-float lastX = SCR_WIDTH / 2.0f;
-float lastY = SCR_HEIGHT / 2.0f;
+float lastX = Constant::SCR_WIDTH / 2.0f;
+float lastY = Constant::SCR_HEIGHT / 2.0f;
 
 // timing
 float deltaTime = 0.0f; // time between current frame and last frame
 float lastFrame = 0.0f;
-
-#if defined(__APPLE__)
-const char *cubeVsPath = "../shaders/cube.vs";
-const char *cubeFsPath = "../shaders/cube.fs";
-const char *lightCubeVsPath = "../shaders/light_cube.vs";
-const char *lightCubeFsPath = "../shaders/light_cube.fs";
-const char *modelVsPath = "../shaders/model.vs";
-const char *modelFsPath = "../shaders/model.fs";
-const char *diffuseMapPath = "../resources/textures/container2.png";
-const char *specularMapPath = "../resources/textures/container2_specular.png";
-const char *emissiveMapPath = "../resources/textures/matrix.jpeg";
-const char *objPath = "../resources/models/nanosuit/nanosuit.obj";
-// const char *imgContainerPath = "../resources/textures/container.jpg";
-// const char *imgAwesomefacePath = "../resources/textures/awesomeface.png";
-#else
-const char *cubeVsPath = "../../../shaders/cube.vs";
-const char *cubeFsPath = "../../../shaders/cube.fs";
-const char *lightCubeVsPath = "../../../shaders/light_cube.vs";
-const char *lightCubeFsPath = "../../../shaders/light_cube.fs";
-const char *modelVsPath = "../../../shaders/model.vs";
-const char *modelFsPath = "../../../shaders/model.fs";
-const char *diffuseMapPath = "../../../resources/textures/container2.png";
-const char *specularMapPath = "../../../resources/textures/container2_specular.png";
-const char *emissiveMapPath = "../../../resources/textures/matrix.jpeg";
-const char *objPath = "../../../resources/models/nanosuit/nanosuit.obj";
-// const char *imgContainerPath = "../../../resources/textures/container.jpg";
-// const char *imgAwesomefacePath = "../../../resources/textures/awesomeface.png";
-#endif
 
 int main(int, char **)
 {
@@ -122,7 +86,7 @@ int main(int, char **)
 #endif
 
     // Create window with graphics context
-    GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Learn OpenGL", NULL, NULL);
+    GLFWwindow *window = glfwCreateWindow(Constant::SCR_WIDTH, Constant::SCR_HEIGHT, "Learn OpenGL", NULL, NULL);
     if (window == NULL)
     {
         printf("Failed to create GLFW window");
@@ -138,13 +102,6 @@ int main(int, char **)
         printf("Failed to init GLAD\n");
         return -1;
     }
-
-    // 编译shader
-    Shader modelShader(modelVsPath, modelFsPath);
-
-
-    // 载入模型
-    Model ourModel(objPath);
 
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
@@ -170,11 +127,12 @@ int main(int, char **)
 
     // 测试场景
     Test::BaseTest* current = nullptr;
-    Test::TestMenu* testMenu = new Test::TestMenu(current);
+    auto* testMenu = new Test::TestMenu(current);
     current = testMenu;
 
     testMenu->RegistTest<Test::TestClearColor>("clear color");
     testMenu->RegistTest<Test::TestCube>("cube");
+    testMenu->RegistTest<Test::TestModel>("model");
 
     // Main loop
     while (!glfwWindowShouldClose(window))
@@ -202,28 +160,13 @@ int main(int, char **)
             current->OnImGuiRender();
             ImGui::End();
         }
-        
-        //// 渲染代码
-
-        //// 渲染模型
-        //modelShader.use();
-        //modelShader.setMat4("projection", projection);
-        //modelShader.setMat4("view", view);
-        //glm::mat4 model = glm::mat4(1.0f);
-        //model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f)); // translate it down so it's at the center of the scene
-        //model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));     // it's a bit too big for our scene, so scale it down
-        //modelShader.setMat4("model", model);
-        //ourModel.Draw(modelShader);
-
-        //glBindBuffer(GL_ARRAY_BUFFER, 0);
 
         // imgui
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         glfwSwapBuffers(window);
-
-        //processInput(window);
+        
         glfwPollEvents();
     }
 

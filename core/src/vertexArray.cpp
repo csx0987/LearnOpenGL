@@ -1,25 +1,26 @@
 #include "vertexArray.h"
 #include "vertexBuffer.h"
 #include "vertexBufferLayout.h"
+#include "gFunction.h"
 
 VertexArray::VertexArray()
 {
-    glGenVertexArrays(1, &mRenderID);
+    GLCall(glGenVertexArrays(1, &mRenderID));
 }
 
 VertexArray::~VertexArray()
 {
-    glDeleteVertexArrays(1, &mRenderID);
+    GLCall(glDeleteVertexArrays(1, &mRenderID));
 }
 
 void VertexArray::Bind() const
 {
-    glBindVertexArray(mRenderID);
+    GLCall(glBindVertexArray(mRenderID));
 }
 
 void VertexArray::UnBind() const
 {
-    glBindVertexArray(0);
+    GLCall(glBindVertexArray(0));
 }
 
 void VertexArray::AddBuffer(const VertexBuffer &vb, const VertexBufferLayout &vbl)
@@ -31,8 +32,8 @@ void VertexArray::AddBuffer(const VertexBuffer &vb, const VertexBufferLayout &vb
     for (unsigned int i = 0; i < elements.size(); i++)
     {
         const VertexBufferElement &element = elements[i];
-        glVertexAttribPointer(i, element.count, element.type, element.normalized, vbl.GetStride(), (void *)(stride));
-        glEnableVertexAttribArray(i);
+        GLCall(glVertexAttribPointer(i, element.count, element.type, element.normalized, vbl.GetStride(), (void *)(stride)));
+        GLCall(glEnableVertexAttribArray(i));
 
         stride += element.count * VertexBufferElement::GetTypeSize(element.type);
     }

@@ -16,21 +16,18 @@ namespace Test
 	{
 		if (pShader)
 		{
-			printf("delete pShader\n");
 			delete pShader;
 			pShader = nullptr;
 		}
 		
 		if (pModel)
 		{
-			printf("delete pModel\n");
 			delete pModel;
 			pModel = nullptr;
 		}
 
 		if (pCamera)
 		{
-			printf("delete pCamera\n");
 			delete pCamera;
 			pCamera = nullptr;
 		}

@@ -270,6 +270,37 @@ namespace Test
 		delete pRenderer;
 	}
 
+	void Test::TestCube::ProcessInput(GLFWwindow* window, float deltaTime)
+	{
+		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+			glfwSetWindowShouldClose(window, true);
+
+		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+			pCamera->ProcessKeyboard(FORWARD, deltaTime);
+		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+			pCamera->ProcessKeyboard(BACKWARD, deltaTime);
+		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+			pCamera->ProcessKeyboard(LEFT, deltaTime);
+		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+			pCamera->ProcessKeyboard(RIGHT, deltaTime);
+
+		if (glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS)
+		{
+			if (glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED)
+			{
+				glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+				glfwSetCursorPosCallback(window, nullptr);
+				glfwSetScrollCallback(window, nullptr);
+				firstMouse = true;
+			}
+			else
+			{
+				glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+				firstMouse = true;
+			}
+		}
+	}
+
 	void Test::TestCube::OnRender()
 	{
 		pRenderer->Clear();
@@ -392,5 +423,27 @@ namespace Test
 
 	void Test::TestCube::OnImGuiRender()
 	{
+	}
+
+	void Test::TestCube::MouseCallback(GLFWwindow* window, double xpos, double ypos)
+	{
+		if (firstMouse)
+		{
+			lastX = xpos;
+			lastY = ypos;
+			firstMouse = false;
+		}
+
+		float xoffset = xpos - lastX;
+		float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
+		lastX = xpos;
+		lastY = ypos;
+
+		pCamera->ProcessMouseMovement(xoffset, yoffset);
+	}
+
+	void Test::TestCube::ScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
+	{
+		pCamera->ProcessMouseScroll(yoffset);
 	}
 }

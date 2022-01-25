@@ -14,9 +14,6 @@
 #include <GLFW/glfw3.h> // Will drag system OpenGL headers
 #define STB_IMAGE_IMPLEMENTATION
 #include "constant.h"
-#include "shader.h"
-#include "camera.h"
-#include "model.h"
 #include "testUnit/baseTest.h"
 #include "testUnit/testClearColor.h"
 #include "testUnit/testMenu.h"
@@ -41,15 +38,6 @@ static void glfw_error_callback(int error, const char *description)
 }
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
-void processInput(GLFWwindow *window);
-void mouse_callback(GLFWwindow *window, double xpos, double ypos);
-void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
-
-// camera
-Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
-bool firstMouse = true;
-float lastX = Constant::SCR_WIDTH / 2.0f;
-float lastY = Constant::SCR_HEIGHT / 2.0f;
 
 // timing
 float deltaTime = 0.0f; // time between current frame and last frame
@@ -147,6 +135,7 @@ int main(int, char **)
 
         if (current)
         {
+            current->ProcessInput(window, deltaTime);
             current->OnUpdate(deltaTime);
 
             current->OnRender();
@@ -184,59 +173,4 @@ int main(int, char **)
 void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 {
     glViewport(0, 0, width, height);
-}
-
-void processInput(GLFWwindow *window)
-{
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, true);
-
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        camera.ProcessKeyboard(FORWARD, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        camera.ProcessKeyboard(BACKWARD, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        camera.ProcessKeyboard(LEFT, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        camera.ProcessKeyboard(RIGHT, deltaTime);
-
-    if (glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS)
-    {
-        if (glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED)
-        {
-            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-            glfwSetCursorPosCallback(window, NULL);
-            glfwSetScrollCallback(window, NULL);
-            firstMouse = true;
-        }
-        else
-        {
-            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-            glfwSetCursorPosCallback(window, mouse_callback);
-            glfwSetScrollCallback(window, scroll_callback);
-            firstMouse = true;
-        }
-    }
-}
-
-void mouse_callback(GLFWwindow *window, double xpos, double ypos)
-{
-    if (firstMouse)
-    {
-        lastX = xpos;
-        lastY = ypos;
-        firstMouse = false;
-    }
-
-    float xoffset = xpos - lastX;
-    float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
-    lastX = xpos;
-    lastY = ypos;
-
-    camera.ProcessMouseMovement(xoffset, yoffset);
-}
-
-void scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
-{
-    camera.ProcessMouseScroll(yoffset);
 }
